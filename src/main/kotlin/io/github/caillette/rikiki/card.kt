@@ -2,6 +2,7 @@ package io.github.caillette.rikiki
 
 import com.google.common.collect.ImmutableSet
 import java.util.*
+import kotlin.Comparator
 
 /**
  * Order is the same as for corresponding Unicode characters.
@@ -19,9 +20,19 @@ enum class Figure( val asciiSymbol : Char ) {
   TEN( 'T' ),
   JACK( 'J' ),
   QUEEN( 'Q' ),
-  KING( 'K' ),
-}
+  KING( 'K' ) ;
 
+  private fun strength() : Int {
+    return if( this == ACE ) KING.ordinal + 1 else ordinal
+  }
+
+  object comparatorByStrength : Comparator< Figure > {
+    override fun compare( o1 : Figure, o2 : Figure ) : Int {
+      return o1.strength() - o2.strength()
+    }
+  }
+
+}
 
 enum class Color {
   RED,

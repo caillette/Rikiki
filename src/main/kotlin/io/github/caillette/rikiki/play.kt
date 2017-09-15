@@ -60,6 +60,8 @@ class FullGame(
     Dumpable
 {
 
+  private val logger = KotlinLogging.logger { }
+
   /**
    * All the [Card]s in the game, in distribution order. Immutable, no duplicates.
    */
@@ -104,7 +106,6 @@ class FullGame(
   private var _turn = 0
 
   fun askPlayersToBet() {
-    _decisionsForThisTurn = ImmutableList.of()
     val betsBuilder : MutableMap< PlayerIdentity, Int > = mutableMapOf()
     for( playerActor in _players ) {
       betsBuilder[ playerActor.playerIdentity ] = playerActor.bet()
@@ -113,13 +114,20 @@ class FullGame(
   }
 
   fun askPlayersToDecide() {
+    check( turn < decisionCount )
+
+    fun < T >ImmutableList< T >.append( element : T ) : ImmutableList< T > {
+      return ImmutableList.builder< T >().addAll( this ).add( element ).build()
+    }
+
+    _decisionsForThisTurn = ImmutableList.of()
     for( playerActor in _players ) {  // TODO: start with last winner if any.
       val cardPlayed = playerActor.decide()
       val decision = Decision( _turn, playerActor.playerIdentity, cardPlayed )
-      _decisionsForThisTurn = ImmutableList.builder< Decision >()
-          .addAll( _decisionsForThisTurn ).add( decision ).build()
+      _decisionsForThisTurn = _decisionsForThisTurn.append( decision )
     }
-//    val winningDecision = best( decisionsForThisTurn )
+    val winningDecision = best( decisionsForThisTurn, trump )
+    logger.info( "Winning decision: $winningDecision ")
     _turn ++
   }
 
@@ -159,14 +167,37 @@ class FullGame(
 }
 
 /**
- * Describes a [PlayerActor] playing one [Card]. This is seen by every other [Player] since
- * there is no 'hidden' state.
+ * Describes a [PlayerActor] playing one [Card]. Every [PlayerActor] can see a [Decision].
  * TODO: add some useful precomputed states.
  */
-data class Decision( val turnIndex : Int, val playerIdentity : PlayerIdentity, val card : Card )
+data class Decision( val turnIndex : Int, val playerIdentity : PlayerIdentity, val card : Card ) {
+  companion object {
+    val comparator : Comparator< Decision > = Comparator( { d1, d2 ->
+      Figure.comparatorByStrength.compare( d1.card.figure, d2.card.figure ) } )
+  }
+}
 
-fun best( decisions : List< Decision > ) : Decision {
-  TODO()
+
+fun best( decisions : List< Decision >, trump : Card? ) : Decision {
+  check( decisions.isNotEmpty() )
+
+  fun select( decisions : List< Decision >, suite : Suite ) : MutableList< Decision > {
+    return ArrayList( decisions.filter { it.card.suite == suite } )
+  }
+
+  fun sameSuiteAsFirst() : MutableList< Decision > {
+    return select( decisions, decisions.first().card.suite )
+  }
+
+  val selectable : MutableList< Decision >
+  selectable = if( trump == null ) {
+    sameSuiteAsFirst()
+  } else {
+    val trumpOnly = select( decisions, trump.suite )
+    if( trumpOnly.isEmpty() ) sameSuiteAsFirst() else trumpOnly
+  }
+  selectable.sortWith( Decision.comparator )
+  return selectable.first()
 }
 
 fun chosable( cards : List< Card >, first : Card? ) : Set< Card > {
@@ -190,9 +221,8 @@ class PlayerActor(
     initialHand : Set< Card >
 ) : Dumpable {
 
-  private val logger = KotlinLogging.logger(
-      PlayerActor::class.simpleName + "." +
-          playerIdentity.name.replace( Regex( "[^a-zA-Z0-9]+" ), "" ) )
+  private val logger = KotlinLogging.logger( PlayerActor::class.simpleName + "." +
+      playerIdentity.name.replace( Regex( "[^a-zA-Z0-9]+" ), "" ) )
 
   val _hand : MutableList< Card >
 
@@ -201,7 +231,7 @@ class PlayerActor(
   }
 
   /**
-   * Must be called before first call to [decide] or [decision].
+   * Must be called before first call to [decide].
    */
   fun bet() : Int {
     val bet = 0

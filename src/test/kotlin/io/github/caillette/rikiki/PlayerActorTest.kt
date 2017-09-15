@@ -44,18 +44,23 @@ class PlayerActorTest {
   @Test
   fun askPlayersToDecide() {
     val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
+    val alice = fullGame._players[ 0 ]
+    val bob = fullGame._players[ 1 ]
 
     fullGame.askPlayersToBet()
+    assertEquals( alice._hand.size, 2 )
+    assertEquals( bob._hand.size, 2 )
+    assertEquals( fullGame.decisionsForThisTurn.size, 0 )
 
     fullGame.askPlayersToDecide()
-    assertEquals( fullGame._players[ 0 ]._hand.size, 1 )
-    assertEquals( fullGame._players[ 1 ]._hand.size, 1 )
+    assertEquals( alice._hand.size, 1 )
+    assertEquals( bob._hand.size, 1 )
     assertEquals( fullGame.decisionsForThisTurn.size, 2 )
 
     fullGame.askPlayersToDecide()
-    assertEquals( fullGame._players[ 0 ]._hand.size, 0 )
-    assertEquals( fullGame._players[ 1 ]._hand.size, 0 )
-    assertEquals( fullGame.decisionsForThisTurn.size, 4 )
+    assertEquals( alice._hand.size, 0 )
+    assertEquals( bob._hand.size, 0 )
+    assertEquals( fullGame.decisionsForThisTurn.size, 2 )
   }
 
   private val logger = KotlinLogging.logger {}
@@ -78,10 +83,6 @@ object Fixture {
   val QUEEN_OF_HEARTS = CardPattern( Figure.QUEEN, Suite.HEART )
   val TEN_OF_DIAMONDS = CardPattern( Figure.TEN, Suite.DIAMOND )
   val TWO_OF_CLUBS = CardPattern( Figure.TWO, Suite.CLUB )
-
-  private fun Packet.firstMatch( figure : Figure, suite : Suite ) : Card {
-    return this.cards.first( { ( _ , f, s ) -> f == figure && s == suite } )
-  }
 
   val alice = PlayerIdentity( "Alice" )
   val bob = PlayerIdentity( "Bob" )
