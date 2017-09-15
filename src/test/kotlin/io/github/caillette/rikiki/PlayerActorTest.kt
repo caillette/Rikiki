@@ -1,11 +1,12 @@
 package io.github.caillette.rikiki
 import mu.KotlinLogging
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.function.Executable
 
 class PlayerActorTest {
 
@@ -20,7 +21,7 @@ class PlayerActorTest {
 
     assertEquals( fullGame._cards.size, 5 )
 
-    logger.info { "Logging works" }
+    logger.info( "Logging works" )
 
     assertMatches( Fixture.ACE_OF_SPADES, alice._hand[ 0 ] )
     assertMatches( Fixture.KING_OF_CLUBS, bob._hand[ 0 ] )
@@ -28,6 +29,16 @@ class PlayerActorTest {
     assertMatches( Fixture.TEN_OF_DIAMONDS, bob._hand[ 1 ] )
     assertNotNull( fullGame.trump )
     assertMatches( Fixture.TWO_OF_CLUBS, fullGame.trump!! )
+  }
+
+
+  @Test
+  fun askPlayersToBet() {
+    val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
+    assertThrows( IllegalStateException::class.javaObjectType, { fullGame.bets[ Fixture.alice ] } )
+    fullGame.askPlayersToBet()
+    assertEquals( fullGame.bets[ Fixture.alice ], 0 )
+    assertEquals( fullGame.bets[ Fixture.bob ], 0 )
   }
 
   private val logger = KotlinLogging.logger {}
@@ -40,7 +51,7 @@ fun assertMatches( cardPattern : Fixture.CardPattern, card : Card ) {
 
 object Fixture {
 
-  data class CardPattern( val figure : Figure, val suite : Suite ) {
+  data class CardPattern( private val figure : Figure, private val suite : Suite ) {
     val forCard : ( Card ) -> Boolean = { ( _ , f, s ) -> f == figure && s == suite }
     val raw : ( Figure, Suite ) -> Boolean = { f, s -> f == figure && s == suite }
   }
@@ -64,7 +75,7 @@ object Fixture {
       QUEEN_OF_HEARTS.raw,
       TEN_OF_DIAMONDS.raw,
       TWO_OF_CLUBS.raw
-   ).cards
+  ).cards
 
 
 }
