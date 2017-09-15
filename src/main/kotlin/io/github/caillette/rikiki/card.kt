@@ -44,9 +44,9 @@ enum class Suite( val color : Color, val asciiSymbol : Char ) {
  * on the originating packet.
  * There is no support for something like wildcard, which would imply [Figure] and [Suite] nullity.
  */
-class Card constructor( val packet : Packet, val figure : Figure, val suite : Suite ) {
+data class Card constructor( val packet : Packet, val figure : Figure, val suite : Suite ) {
   override fun toString() : String {
-    return super.toString() + "{" + System.identityHashCode( packet) + ";" +
+    return super.toString() + "{" + System.identityHashCode( packet ) + ";" +
         figure.asciiSymbol + ";" + suite.asciiSymbol + "}"
   }
 }

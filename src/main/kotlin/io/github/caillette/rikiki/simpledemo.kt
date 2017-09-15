@@ -3,6 +3,7 @@ package io.github.caillette.rikiki
 fun main( args : Array< String > ) {
   println( "Hi Kotlin" )
   println( Packet() )
+  println( Packet().cards.iterator().next() )
 //  for( card in Packet().cards ) println( card )
 
   println( ansiString( Packet().cards ) )
