@@ -50,9 +50,9 @@ class FullGame(
   /**
    * All the [Card]s in the game, in distribution order. Immutable, no duplicates.
    */
-  private val _cards : List< Card >
+  internal val _cards : List< Card >
 
-  private val _players : List< PlayerActor >
+  internal val _players : List< PlayerActor >
 
   private val _trump : Card?
 
@@ -136,10 +136,10 @@ class PlayerActor(
     val playerIdentity : PlayerIdentity,
     initialHand : Set< Card >
 ) : Dumpable {
-  val _hand : MutableSet< Card >
+  val _hand : MutableList< Card >
 
   init {
-    _hand = HashSet( initialHand )
+    _hand = ArrayList( initialHand )
   }
 
   /**

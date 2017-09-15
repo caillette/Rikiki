@@ -28,6 +28,9 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
+    compile 'io.github.microutils:kotlin-logging:1.4.6'
+    runtime 'ch.qos.logback:logback-classic:1.2.3'
+
     // Make JUnit 5 work with IDEA 2017.2.
     // https://youtrack.jetbrains.com/issue/IDEA-170817#comment=27-2081280
 

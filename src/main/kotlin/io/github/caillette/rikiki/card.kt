@@ -49,6 +49,10 @@ data class Card constructor( val packet : Packet, val figure : Figure, val suite
     return super.toString() + "{" + System.identityHashCode( packet ) + ";" +
         figure.asciiSymbol + ";" + suite.asciiSymbol + "}"
   }
+
+  fun equivalent( other : Card ) : Boolean {
+    return this.figure == other.figure && this.suite == other.suite
+  }
 }
 
 
@@ -59,19 +63,28 @@ class Packet {
   val cards : Set< Card >
 
   /**
-   * @param selector so we can customize what [cards] we put in.
+   * @param selectors so we can customize what [cards] we put in.
    */
-  constructor( selector : ( figure : Figure, suite : Suite ) -> Boolean ) {
+  constructor( vararg selectors : ( figure : Figure, suite : Suite ) -> Boolean ) {
     val builder = mutableSetOf< Card >()
-    for( suite in Suite.values() ) {
-      for( figure in Figure.values() ) {
-        if( selector.invoke( figure, suite) ) builder.add( Card( this, figure, suite ) )
+    for( selector in selectors ) {
+      for( suite in Suite.values() ) {
+        for( figure in Figure.values() ) {
+          if( selector.invoke( figure, suite ) ) builder.add( Card( this, figure, suite ) )
+        }
       }
     }
     cards = builder.toSet()
   }
 
-  constructor( ) : this( { _, _ -> true } )
+  constructor() : this( { _ , _ -> true } )
+
+  /**
+   * @throws NoSuchElementException if there is no matching [Card].
+   */
+  fun first( predicate : ( Figure, Suite ) -> Boolean ) : Card {
+    return cards.first { ( _ , figure, suite ) -> predicate( figure, suite ) }
+  }
 
 }
 
