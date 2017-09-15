@@ -1,10 +1,9 @@
 package io.github.caillette.rikiki
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import mu.KotlinLogging
-import java.util.*
-import java.util.regex.Pattern
-import kotlin.collections.ArrayList
-import kotlin.collections.LinkedHashSet
 
 data class PlayerIdentity( val name : String )
 
@@ -26,6 +25,9 @@ abstract class PublicGame(
 
   abstract val trump : Card?
 
+  /**
+   * @return an immutable [List].
+   */
   abstract val decisionsForThisTurn : List< Decision >
 
   abstract val turn : Int
@@ -33,6 +35,7 @@ abstract class PublicGame(
   abstract val firstCard : Card?
 
   /**
+   * @return an immutable [Map].
    * @throws IllegalStateException if [PlayerActor.bet] was not called beforehand for everybody.
    */
   abstract val bets : Map< PlayerIdentity, Int >
@@ -53,16 +56,16 @@ class FullGame(
     playerIdentities : Set< PlayerIdentity >,
     cards : Set< Card >,
     decisionCount : Int
-) : PublicGame( Collections.unmodifiableSet( playerIdentities ), decisionCount ),
+) : PublicGame( ImmutableSet.copyOf( playerIdentities ), decisionCount ),
     Dumpable
 {
 
   /**
    * All the [Card]s in the game, in distribution order. Immutable, no duplicates.
    */
-  internal val _cards : List< Card >
+  internal val _cards : ImmutableList< Card >
 
-  internal val _players : List< PlayerActor >
+  internal val _players : ImmutableList< PlayerActor >
 
   private val _trump : Card?
 
@@ -72,7 +75,7 @@ class FullGame(
   init {
     check( cards.size >= playerIdentities.size )
     check( playerIdentities.size > 1 )
-    _cards = Collections.unmodifiableList( ArrayList( cards ) )
+    _cards = ImmutableSet.copyOf( cards ).asList()
 
     val numberOfCardsPlayed = playerIdentities.size * decisionCount
     val initialHands : Array< MutableSet< Card > > =
@@ -85,32 +88,38 @@ class FullGame(
     playerIdentities.mapIndexedTo( playerActorsBuilder ) {
       index, playerIdentity -> PlayerActor( this, playerIdentity, initialHands[ index ] )
     }
-    _players = Collections.unmodifiableList( playerActorsBuilder )
+    _players = ImmutableList.copyOf( playerActorsBuilder )
 
     _trump = if( numberOfCardsPlayed < _cards.size ) _cards[ numberOfCardsPlayed ] else null
   }
 
-  private var _bets : Map< PlayerIdentity, Int >? = null
+  private var _bets : ImmutableMap< PlayerIdentity, Int >? = null
 
-  private val _decisionsForThisTurn = ArrayList< Decision >()
+  /**
+   * We recreate a fresh instance each time we add an element. But this saves defensive copies
+   * when [PlayerActor] calls [PublicGame.decisionsForThisTurn].
+   */
+  private var _decisionsForThisTurn : ImmutableList< Decision > = ImmutableList.of()
 
   private var _turn = 0
 
   fun askPlayersToBet() {
-    _decisionsForThisTurn.clear()
+    _decisionsForThisTurn = ImmutableList.of()
     val betsBuilder : MutableMap< PlayerIdentity, Int > = mutableMapOf()
     for( playerActor in _players ) {
       betsBuilder[ playerActor.playerIdentity ] = playerActor.bet()
     }
-    _bets = Collections.unmodifiableMap( betsBuilder )
+    _bets = ImmutableMap.copyOf( betsBuilder )
   }
 
   fun askPlayersToDecide() {
-    for( playerActor in _players ) {
+    for( playerActor in _players ) {  // TODO: start with last winner if any.
       val cardPlayed = playerActor.decide()
       val decision = Decision( _turn, playerActor.playerIdentity, cardPlayed )
-      _decisionsForThisTurn.add( decision )
+      _decisionsForThisTurn = ImmutableList.builder< Decision >()
+          .addAll( _decisionsForThisTurn ).add( decision ).build()
     }
+//    val winningDecision = best( decisionsForThisTurn )
     _turn ++
   }
 
@@ -127,8 +136,8 @@ class FullGame(
   override val turn : Int
     get() = _turn
 
-  override val decisionsForThisTurn : List<Decision>
-    get() = Collections.unmodifiableList( ArrayList( _decisionsForThisTurn ) )
+  override val decisionsForThisTurn : List< Decision >
+    get() = _decisionsForThisTurn
 
   override val firstCard : Card?
     get() = if( _decisionsForThisTurn.isEmpty() ) null else _decisionsForThisTurn.first().card
@@ -156,12 +165,16 @@ class FullGame(
  */
 data class Decision( val turnIndex : Int, val playerIdentity : PlayerIdentity, val card : Card )
 
+fun best( decisions : List< Decision > ) : Decision {
+  TODO()
+}
+
 fun chosable( cards : List< Card >, first : Card? ) : Set< Card > {
   return if( first == null ) {
-    LinkedHashSet( cards )
+    ImmutableSet.copyOf( cards )
   } else {
-    val sameSuiteAsFirst = LinkedHashSet( cards.filter { it.suite == first.suite } )
-    if( sameSuiteAsFirst.isEmpty() ) LinkedHashSet( cards ) else sameSuiteAsFirst
+    val sameSuiteAsFirst = ImmutableSet.copyOf( cards.filter { it.suite == first.suite } )
+    if( sameSuiteAsFirst.isEmpty() ) ImmutableSet.copyOf( cards ) else sameSuiteAsFirst
   }
 }
 

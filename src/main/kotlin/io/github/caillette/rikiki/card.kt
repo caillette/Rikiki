@@ -1,7 +1,7 @@
 package io.github.caillette.rikiki
 
+import com.google.common.collect.ImmutableSet
 import java.util.*
-import kotlin.collections.LinkedHashSet
 
 /**
  * Order is the same as for corresponding Unicode characters.
@@ -53,7 +53,7 @@ data class Card constructor( val packet : Packet, val figure : Figure, val suite
 
 
 /**
- * A [Packet] contains [Card]s.
+ * A [Packet] is an immutable object containing [Card]s.
  */
 class Packet {
   val cards : Set< Card >
@@ -62,7 +62,7 @@ class Packet {
    * @param selectors so we can customize what [cards] we put in.
    */
   constructor( vararg selectors : ( figure : Figure, suite : Suite ) -> Boolean ) {
-    val builder = mutableSetOf< Card >()
+    val builder = ImmutableSet.Builder< Card >()
     // Apply selectors first to make selection match their order.
     for( selector in selectors ) {
       for( suite in Suite.values() ) {
@@ -71,7 +71,7 @@ class Packet {
         }
       }
     }
-    cards = builder.toSet()
+    cards = builder.build()
   }
 
   constructor() : this( { _ , _ -> true } )
@@ -79,9 +79,13 @@ class Packet {
 }
 
 fun shuffle( vararg packets : Packet ) : Set< Card > {
+  return shuffle( Random( 0 ), *packets )
+}
+
+fun shuffle( random : Random, vararg packets : Packet ) : Set< Card > {
   val list = ArrayList< Card >()
   packets.forEach { packet -> list.addAll( packet.cards ) }
-  Collections.shuffle( list )
-  return Collections.unmodifiableSet( LinkedHashSet( list ) )
+  Collections.shuffle( list, random )
+  return ImmutableSet.copyOf( list )
 }
 

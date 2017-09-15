@@ -30,6 +30,7 @@ dependencies {
 
     compile 'io.github.microutils:kotlin-logging:1.4.6'
     runtime 'ch.qos.logback:logback-classic:1.2.3'
+    compile group: 'com.google.guava', name: 'guava', version: '23.0'
 
     // Make JUnit 5 work with IDEA 2017.2.
     // https://youtrack.jetbrains.com/issue/IDEA-170817#comment=27-2081280
