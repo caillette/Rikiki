@@ -1,6 +1,8 @@
 package io.github.caillette.rikiki
 
+import mu.KotlinLogging
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashSet
 
@@ -8,6 +10,8 @@ data class PlayerIdentity( val name : String )
 
 /**
  * Describes what everybody can see. [PlayerActor] can safely access to every member.
+ * Values are read-only and guaranteed to not change while [FullGame] calls methods of
+ * [PlayerActor].
  *
  * @param decisionCount must be 1 or greater.
  */
@@ -21,6 +25,12 @@ abstract class PublicGame(
   }
 
   abstract val trump : Card?
+
+  abstract val decisionsForThisTurn : List< Decision >
+
+  abstract val turn : Int
+
+  abstract val firstCard : Card?
 
   /**
    * @throws IllegalStateException if [PlayerActor.bet] was not called beforehand for everybody.
@@ -78,8 +88,50 @@ class FullGame(
     _players = Collections.unmodifiableList( playerActorsBuilder )
 
     _trump = if( numberOfCardsPlayed < _cards.size ) _cards[ numberOfCardsPlayed ] else null
-
   }
+
+  private var _bets : Map< PlayerIdentity, Int >? = null
+
+  private val _decisionsForThisTurn = ArrayList< Decision >()
+
+  private var _turn = 0
+
+  fun askPlayersToBet() {
+    _decisionsForThisTurn.clear()
+    val betsBuilder : MutableMap< PlayerIdentity, Int > = mutableMapOf()
+    for( playerActor in _players ) {
+      betsBuilder[ playerActor.playerIdentity ] = playerActor.bet()
+    }
+    _bets = Collections.unmodifiableMap( betsBuilder )
+  }
+
+  fun askPlayersToDecide() {
+    for( playerActor in _players ) {
+      val cardPlayed = playerActor.decide()
+      val decision = Decision( _turn, playerActor.playerIdentity, cardPlayed )
+      _decisionsForThisTurn.add( decision )
+    }
+    _turn ++
+  }
+
+  override val bets : Map< PlayerIdentity, Int >
+    get() {
+      val current = _bets
+      if( current == null ) {
+        throw IllegalStateException( "Bets must occur first" )
+      } else {
+        return current
+      }
+    }
+
+  override val turn : Int
+    get() = _turn
+
+  override val decisionsForThisTurn : List<Decision>
+    get() = Collections.unmodifiableList( ArrayList( _decisionsForThisTurn ) )
+
+  override val firstCard : Card?
+    get() = if( _decisionsForThisTurn.isEmpty() ) null else _decisionsForThisTurn.first().card
 
   override fun dump( i : Int, appendable : Appendable ) {
     val trumpAsString = if( _trump == null ) "" else ansiString( _trump )
@@ -94,36 +146,24 @@ class FullGame(
         .indent( i ).append( '}' ).eol()
   }
 
-  var _bets : Map< PlayerIdentity, Int >? = null
 
-  fun askPlayersToBet() {
-    val betsBuilder : MutableMap< PlayerIdentity, Int > = mutableMapOf()
-    for( playerActor in _players ) {
-      betsBuilder[ playerActor.playerIdentity ] = playerActor.bet()
-    }
-    _bets = Collections.unmodifiableMap( betsBuilder )
-  }
-
-  override val bets : Map< PlayerIdentity, Int >
-    get() {
-      val current = _bets
-      if( current == null ) {
-        throw IllegalStateException( "Bets must occur first" )
-      } else {
-        return current
-      }
-    }
 }
-
-class Bet( playerIdentity : PlayerIdentity, expectedWinCount : Int )
 
 /**
  * Describes a [PlayerActor] playing one [Card]. This is seen by every other [Player] since
  * there is no 'hidden' state.
  * TODO: add some useful precomputed states.
  */
-class Decision( playerIdentity : PlayerIdentity, card : Card )
+data class Decision( val turnIndex : Int, val playerIdentity : PlayerIdentity, val card : Card )
 
+fun chosable( cards : List< Card >, first : Card? ) : Set< Card > {
+  return if( first == null ) {
+    LinkedHashSet( cards )
+  } else {
+    val sameSuiteAsFirst = LinkedHashSet( cards.filter { it.suite == first.suite } )
+    if( sameSuiteAsFirst.isEmpty() ) LinkedHashSet( cards ) else sameSuiteAsFirst
+  }
+}
 
 
 /**
@@ -132,10 +172,15 @@ class Decision( playerIdentity : PlayerIdentity, card : Card )
  * @param initialHand
  */
 class PlayerActor(
-    val game : PublicGame,
+    private val game : PublicGame,
     val playerIdentity : PlayerIdentity,
     initialHand : Set< Card >
 ) : Dumpable {
+
+  private val logger = KotlinLogging.logger(
+      PlayerActor::class.simpleName + "." +
+          playerIdentity.name.replace( Regex( "[^a-zA-Z0-9]+" ), "" ) )
+
   val _hand : MutableList< Card >
 
   init {
@@ -146,15 +191,17 @@ class PlayerActor(
    * Must be called before first call to [decide] or [decision].
    */
   fun bet() : Int {
-    return 0
+    val bet = 0
+    logger.info( "Betting $bet." )
+    return bet
   }
 
-  fun decide() : Decision {
-    TODO()
-  }
-
-  fun decision( decision : Decision ) {
-    TODO()
+  fun decide() : Card {
+    // Keep it simple for now.
+    val chosen = chosable( _hand, game.firstCard ).first()
+    _hand.remove( chosen )
+    logger.info( "Deciding $chosen." )
+    return chosen
   }
 
   override fun dump( i : Int, appendable : Appendable ) {

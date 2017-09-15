@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.function.Executable
 
 class PlayerActorTest {
 
@@ -39,6 +38,24 @@ class PlayerActorTest {
     fullGame.askPlayersToBet()
     assertEquals( fullGame.bets[ Fixture.alice ], 0 )
     assertEquals( fullGame.bets[ Fixture.bob ], 0 )
+  }
+
+
+  @Test
+  fun askPlayersToDecide() {
+    val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
+
+    fullGame.askPlayersToBet()
+
+    fullGame.askPlayersToDecide()
+    assertEquals( fullGame._players[ 0 ]._hand.size, 1 )
+    assertEquals( fullGame._players[ 1 ]._hand.size, 1 )
+    assertEquals( fullGame.decisionsForThisTurn.size, 2 )
+
+    fullGame.askPlayersToDecide()
+    assertEquals( fullGame._players[ 0 ]._hand.size, 0 )
+    assertEquals( fullGame._players[ 1 ]._hand.size, 0 )
+    assertEquals( fullGame.decisionsForThisTurn.size, 4 )
   }
 
   private val logger = KotlinLogging.logger {}

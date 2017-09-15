@@ -46,13 +46,9 @@ enum class Suite( val color : Color, val asciiSymbol : Char ) {
  */
 data class Card constructor( val packet : Packet, val figure : Figure, val suite : Suite ) {
   override fun toString() : String {
-    return super.toString() + "{" + System.identityHashCode( packet ) + ";" +
-        figure.asciiSymbol + ";" + suite.asciiSymbol + "}"
+    return javaClass.simpleName + "{" + figure.asciiSymbol + suite.asciiSymbol + "}"
   }
 
-  fun equivalent( other : Card ) : Boolean {
-    return this.figure == other.figure && this.suite == other.suite
-  }
 }
 
 
@@ -67,6 +63,7 @@ class Packet {
    */
   constructor( vararg selectors : ( figure : Figure, suite : Suite ) -> Boolean ) {
     val builder = mutableSetOf< Card >()
+    // Apply selectors first to make selection match their order.
     for( selector in selectors ) {
       for( suite in Suite.values() ) {
         for( figure in Figure.values() ) {
@@ -78,13 +75,6 @@ class Packet {
   }
 
   constructor() : this( { _ , _ -> true } )
-
-  /**
-   * @throws NoSuchElementException if there is no matching [Card].
-   */
-  fun first( predicate : ( Figure, Suite ) -> Boolean ) : Card {
-    return cards.first { ( _ , figure, suite ) -> predicate( figure, suite ) }
-  }
 
 }
 
