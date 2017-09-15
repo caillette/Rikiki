@@ -18,9 +18,33 @@ repositories {
     mavenCentral()
 }
 
+ext.junit4Version        = '4.12'
+ext.junitVintageVersion  = '4.12.0-M4'
+ext.junitPlatformVersion = '1.0.0-M4'
+ext.junitJupiterVersion = "5.0.0-M4"
+
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+    // Make JUnit 5 work with IDEA 2017.2.
+    // https://youtrack.jetbrains.com/issue/IDEA-170817#comment=27-2081280
+
+    testRuntime( "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}" )
+    testRuntime( "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}" ) // Launcher to override bundled one.
+    testRuntime( "org.junit.platform:junit-platform-runner:${junitPlatformVersion}" )  // Same for runner.
+
+    testCompile( "junit:junit:${junit4Version}" )
+    testRuntime( "org.junit.vintage:junit-vintage-engine:${junitVintageVersion}" )
+    testCompile( "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}" )
+
+    testRuntime( "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}" )
+    testRuntime( "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}" ) // Launcher to override bundled one.
+    testRuntime( "org.junit.platform:junit-platform-runner:${junitPlatformVersion}" )  // Same for runner.
+
+    testCompile( "junit:junit:${junit4Version}" )
+    testRuntime( "org.junit.vintage:junit-vintage-engine:${junitVintageVersion}" )
 }
 
 compileKotlin {
