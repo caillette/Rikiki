@@ -1,4 +1,11 @@
-package io.github.caillette.rikiki
+package io.github.caillette.rikiki.toolkit.game
+import io.github.caillette.rikiki.card.Card
+import io.github.caillette.rikiki.card.Figure
+import io.github.caillette.rikiki.card.Packet
+import io.github.caillette.rikiki.card.Suite
+import io.github.caillette.rikiki.game.FullGame
+import io.github.caillette.rikiki.game.PlayerIdentity
+import io.github.caillette.rikiki.game.score
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -6,6 +13,7 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+
 
 class FullGameTest {
 
@@ -42,7 +50,7 @@ class FullGameTest {
   fun askPlayersToBet() {
     val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
     assertThrows( IllegalStateException::class.javaObjectType, { fullGame.bids[ Fixture.alice ] } )
-    fullGame.askPlayersToBet()
+    fullGame.runTheBids()
     assertEquals( fullGame.bids[ Fixture.alice ], 0 )
     assertEquals( fullGame.bids[ Fixture.bob ], 0 )
   }
@@ -58,12 +66,12 @@ class FullGameTest {
     assertEquals( 0, fullGame.scores[ Fixture.alice ] )
     assertEquals( 0, fullGame.scores[ Fixture.bob ] )
 
-    fullGame.askPlayersToBet()
+    fullGame.runTheBids()
     assertEquals( alice._hand.size, 2 )
     assertEquals( bob._hand.size, 2 )
     assertEquals( fullGame.decisionsForThisTrick.size, 0 )
 
-    fullGame.askPlayersToDecide()
+    fullGame.runTheTrick()
     assertEquals( alice._hand.size, 1 )
     assertEquals( bob._hand.size, 1 )
     assertEquals( fullGame.decisionsForThisTrick.size, 2 )
@@ -71,7 +79,7 @@ class FullGameTest {
     assertEquals( 0, fullGame.scores[ Fixture.alice ] )
     assertEquals( 0, fullGame.scores[ Fixture.bob ] )
 
-    fullGame.askPlayersToDecide()
+    fullGame.runTheTrick()
     assertEquals( alice._hand.size, 0 )
     assertEquals( bob._hand.size, 0 )
     assertEquals( fullGame.decisionsForThisTrick.size, 2 )

@@ -40,3 +40,23 @@ fun< T, U > checkUnique( collection : Collection< T >, extractor : ( T ) -> U ) 
     }
   }
 }
+
+
+
+fun Appendable.eol() : Appendable {
+  append( "\n" )
+  return this
+}
+
+fun Appendable.indentMore( indentCount : Int ) : Appendable {
+  return indent( indentCount + 1 )
+}
+
+fun Appendable.indent( indentCount : Int ) : Appendable {
+  for( i in 0 until indentCount ) {
+    append( "  " )
+  }
+  return this
+}
+
+

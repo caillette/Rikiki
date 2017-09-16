@@ -1,10 +1,17 @@
-package io.github.caillette.rikiki
+package io.github.caillette.rikiki.game
+
+import io.github.caillette.rikiki.card.Card
+import io.github.caillette.rikiki.card.Color
+import io.github.caillette.rikiki.card.Figure
+import io.github.caillette.rikiki.card.Suite
+import io.github.caillette.rikiki.toolkit.eol
 
 /**
- * There are compact Unicode characters:
- * https://en.wikipedia.org/wiki/Playing_cards_in_Unicode
+ * There are nice compact
+ * [Unicode characters](https://en.wikipedia.org/wiki/Playing_cards_in_Unicode)
+ * for cards.
  */
-fun unicodeCharacter( card : Card) : Char {
+fun unicodeCharacter( card : Card ) : Char {
   val figureOffset = when( card.figure ) {
     Figure.ACE -> 0x1
     Figure.TWO -> 0x2
@@ -46,39 +53,25 @@ fun ansiString( cards : Collection< Card > ) : String {
   for( card in cards ) {
     builder
         .append( "\u001B[" )
-        .append(ansiColor(card.suite))
+        .append( ansiColor( card.suite ) )
         .append( ";m" )
         .append( "\uD83C" )  // Unicode stuff, too.
-        .append(unicodeCharacter(card))
+        .append( unicodeCharacter( card ) )
 
   }
   builder.append( "\u001B[0m" )
   return builder.toString()
 }
 
-interface Dumpable {
-
-  fun Appendable.eol() : Appendable {
-    append( "\n" )
-    return this
-  }
-
-  fun Appendable.indentMore( indentCount : Int ) : Appendable {
-    return indent( indentCount + 1 )
-  }
-
-  fun Appendable.indent( indentCount : Int ) : Appendable {
-    for( i in 0 until indentCount ) {
-      append( "  " )
-    }
-    return this
-  }
-
-  fun dump( i : Int, appendable : Appendable )
-
-  fun dumpToConsole() {
-    val builder = StringBuilder()
-    dump( 0, builder )
-    println( builder.toString() )
-  }
+fun appendPlayerValues(
+    appendable : Appendable,
+    title : String,
+    map : Map< PlayerIdentity, Int >
+) {
+  appendable.append( "$title: " )
+  map.entries.joinTo( appendable, transform = { e -> e.key.name + "=" + e.value } )
+  appendable.eol()
 }
+
+
+
