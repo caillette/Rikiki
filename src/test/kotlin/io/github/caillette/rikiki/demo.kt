@@ -12,12 +12,13 @@ import java.util.*
 
 fun main( arguments : Array< String > ) {
   val cards = shuffle( Random(), Packet(), Packet() )
-  val fullGame = FullGame( players( "Alice", "Bob", "Charlie", "Dylan" ), cards, 6 )
+  val fullGame = FullGame( players( "Alice", "Bob", "Charlie", "Dylan" ), cards, 10 )
   val report = StringBuilder()
 
   report.eol().append( "Starting game with " )
-  fullGame.playerIdentities.joinTo( report, transform = { ( name ) -> name } )
-  report.eol()
+      .append( "" + fullGame.playerIdentities.size + " players and " )
+      .append( "" + fullGame.trickCount + " tricks" )
+      .eol()
 
   val trump = fullGame.trump
   if( trump == null ) {
@@ -26,6 +27,9 @@ fun main( arguments : Array< String > ) {
     report.append( "Trump: ").append( ansiString( trump ) ).eol()
   }
 
+  val nameMaximumLength = fullGame.playerIdentities.map { it -> it.name.length }.max()!!
+  val winToken = "<"
+
   fullGame.runTheBids()
   appendPlayerValues( report, "Bids", fullGame.bids )
   report.eol()
@@ -33,15 +37,18 @@ fun main( arguments : Array< String > ) {
   while( fullGame.phase != PublicGame.Phase.COMPLETE ) {
     val winningDecision = fullGame.runTheTrick()
     for( ( playerIdentity, card ) in fullGame.decisionsForThisTrick ) {
-      report
-          .append( playerIdentity.name ).append( " played " )
-          .append( ansiString( card ) )
-          .eol()
+      report.append( playerIdentity.name.padStart( nameMaximumLength ) )
+      report.append( ": " ).append( ansiString( card ) )
+      if( playerIdentity == winningDecision.playerIdentity ) {
+        report.append( winToken )
+      } else {
+        report.append( " ".repeat( winToken.length ) )
+      }
+      report.append( "  " )
     }
-    report
-        .append( "Winner of this trick: " ).append( winningDecision.playerIdentity.name )
-        .eol().eol()
+    report.eol()
   }
+  report.eol()
   appendPlayerValues( report, "Scores", fullGame.scores )
   report.eol()
 

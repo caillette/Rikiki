@@ -28,7 +28,14 @@ abstract class PublicGame(
    */
   abstract val decisionsForThisTrick : List< Decision >
 
-  abstract val trick : Int
+  /**
+   * Zero-based index of current trick.
+   * A trick is a sequence of calls to [PlayerActor.bet] (one call per [PlayerActor])
+   * then a sequence of calls to [PlayerActor.decisionForCurrentTrick] (one call per
+   * [PlayerActor] again).
+   * The value of [trickIndex] is capped by [trickCount].
+   */
+  abstract val trickIndex : Int
 
   abstract val firstCard : Card?
 
@@ -41,7 +48,7 @@ abstract class PublicGame(
   abstract val scores : Map< PlayerIdentity, Int >
 
   /**
-   * @return an immutable [Map] reflecting last wins.
+   * @return an immutable [Map] reflecting the sum of the wins for past tricks.
    */
   abstract val trickWins : Map< PlayerIdentity, Int >
 

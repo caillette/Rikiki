@@ -16,7 +16,7 @@ import io.github.caillette.rikiki.toolkit.rollFirst
 import mu.KotlinLogging
 
 /**
- * Contains game's internals.
+ * Game's internals.
  *
  * @param playerIdentities the [PlayerIdentity] in the order defined by the default iterator
  *     of the given object. Order matters because it defines order of play.
@@ -60,7 +60,7 @@ class FullGame(
    */
   private var _decisionsForThisTrick : ImmutableList< Decision > = ImmutableList.of()
 
-  private var _trick = 0
+  private var _trickIndex = 0
 
   private var _phase = Phase.NEW
 
@@ -99,7 +99,7 @@ class FullGame(
   }
 
   fun runTheTrick() : Decision {
-    check( trick < trickCount )
+    check( trickIndex < trickCount )
     check( _phase == Phase.BIDS_DONE || _phase == Phase.DECIDING )
     _phase = Phase.DECIDING
 
@@ -108,17 +108,17 @@ class FullGame(
 
     for( playerActor in playersInOrder ) {
       val cardPlayed = playerActor.decisionForCurrentTrick()
-      val decision = Decision(playerActor.playerIdentity, cardPlayed )
+      val decision = Decision( playerActor.playerIdentity, cardPlayed )
       _decisionsForThisTrick = _decisionsForThisTrick.append( decision )
     }
-    val winningDecision = best(decisionsForThisTrick, trump )
+    val winningDecision = best( decisionsForThisTrick, trump )
     logger.info( "Winning decision: $winningDecision " )
 
     _firstToPlay = _players.find( winningDecision.playerIdentity )
     _trickWins = _trickWins.addTo( winningDecision.playerIdentity, 1 )
-    _trick ++
+    _trickIndex ++
 
-    if( trick >= trickCount) {
+    if( trickIndex >= trickCount) {
       _phase = Phase.COMPLETE
       for( player in playerIdentities ) {
         _scores = _scores.addTo( player, score( bids[ player ]!!, trickWins[ player ] !! ) )
@@ -131,8 +131,8 @@ class FullGame(
   override val trump : Suite?
     get() = _trump
 
-  override val trick : Int
-    get() = _trick
+  override val trickIndex : Int
+    get() = _trickIndex
 
   override val bids : Map< PlayerIdentity, Int >
     get() {
@@ -173,7 +173,7 @@ class FullGame(
     appendable
         .indent( i ).append( FullGame::class.simpleName ).append( '{' ).eol()
         .indentMore( i ).append( "Trump card: " ).append( trumpAsString ).eol()
-        .indentMore( i ).append( "Turn: " ).append( trick.toString() ).eol()
+        .indentMore( i ).append( "Turn: " ).append( trickIndex.toString() ).eol()
 
     if( phase != Phase.NEW) {
       appendMap( "Bets", bids )
