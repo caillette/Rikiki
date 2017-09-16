@@ -159,6 +159,8 @@ class FullGame(
   override val phase : Phase
     get() = _phase
 
+  override val cardCount : Int
+    get() = _cards.size
 
   override fun dump( i : Int, appendable : Appendable ) {
 

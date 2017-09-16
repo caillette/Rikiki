@@ -39,6 +39,8 @@ abstract class PublicGame(
 
   abstract val firstCard : Card?
 
+  abstract val cardCount : Int
+
   /**
    * @return an immutable [Map] reflecting last bets.
    * @throws IllegalStateException if [PlayerActor.bet] was not called beforehand for everybody.

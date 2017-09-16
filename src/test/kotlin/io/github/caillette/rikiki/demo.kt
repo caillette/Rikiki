@@ -12,19 +12,20 @@ import java.util.*
 
 fun main( arguments : Array< String > ) {
   val cards = shuffle( Random(), Packet(), Packet() )
-  val fullGame = FullGame( players( "Alice", "Bob", "Charlie", "Dylan" ), cards, 10 )
+  val fullGame = FullGame( players( "Alice", "Bob", "Charlie", "Dylan", "Eddie" ), cards, 10 )
   val report = StringBuilder()
 
   report.eol().append( "Starting game with " )
-      .append( "" + fullGame.playerIdentities.size + " players and " )
-      .append( "" + fullGame.trickCount + " tricks" )
+      .append( fullGame.playerIdentities.size.toString() + " players for " )
+      .append( fullGame.trickCount.toString() + " tricks " )
+      .append( "using " + fullGame.cardCount + " cards")
       .eol()
 
   val trump = fullGame.trump
   if( trump == null ) {
     report.append( "No trump").eol()
   } else {
-    report.append( "Trump: ").append( ansiString( trump ) ).eol()
+    report.append( "Trump: " + ansiString( trump ) ).eol()
   }
 
   val nameMaximumLength = fullGame.playerIdentities.map { it -> it.name.length }.max()!!
