@@ -7,7 +7,14 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class PlayerActorTest {
+class FullGameTest {
+
+  @Test
+  fun duplicatePlayerName() {
+    assertThrows( Exception::class.java, {
+      FullGame( setOf( PlayerIdentity( "me" ), PlayerIdentity( "me" ) ), Fixture.cards, 2 )
+    } )
+  }
 
   @Test
   fun createPlayerActors() {
@@ -44,6 +51,7 @@ class PlayerActorTest {
   @Test
   fun askPlayersToDecide() {
     val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
+    logger.info( "Trump is ${fullGame.trump}." )
     val alice = fullGame._players[ 0 ]
     val bob = fullGame._players[ 1 ]
 
@@ -57,10 +65,13 @@ class PlayerActorTest {
     assertEquals( bob._hand.size, 1 )
     assertEquals( fullGame.decisionsForThisTurn.size, 2 )
 
+    fullGame.dumpToConsole()
+
     fullGame.askPlayersToDecide()
     assertEquals( alice._hand.size, 0 )
     assertEquals( bob._hand.size, 0 )
     assertEquals( fullGame.decisionsForThisTurn.size, 2 )
+
   }
 
   private val logger = KotlinLogging.logger {}
@@ -74,7 +85,7 @@ fun assertMatches( cardPattern : Fixture.CardPattern, card : Card ) {
 object Fixture {
 
   data class CardPattern( private val figure : Figure, private val suite : Suite ) {
-    val forCard : ( Card ) -> Boolean = { ( _ , f, s ) -> f == figure && s == suite }
+    val forCard : ( Card ) -> Boolean = { card -> card.figure == figure && card.suite == suite }
     val raw : ( Figure, Suite ) -> Boolean = { f, s -> f == figure && s == suite }
   }
 

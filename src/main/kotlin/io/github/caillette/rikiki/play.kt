@@ -1,8 +1,12 @@
 package io.github.caillette.rikiki
 
+import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import io.github.caillette.rikiki.toolkit.append
+import io.github.caillette.rikiki.toolkit.increment
+import io.github.caillette.rikiki.toolkit.newFilledMap
 import mu.KotlinLogging
 
 data class PlayerIdentity( val name : String )
@@ -35,10 +39,15 @@ abstract class PublicGame(
   abstract val firstCard : Card?
 
   /**
-   * @return an immutable [Map].
+   * @return an immutable [Map] reflecting last bets.
    * @throws IllegalStateException if [PlayerActor.bet] was not called beforehand for everybody.
    */
   abstract val bets : Map< PlayerIdentity, Int >
+
+  /**
+   * @return an immutable [Map] reflecting last wins.
+   */
+  abstract val wins : Map< PlayerIdentity, Int >
 
 }
 
@@ -71,6 +80,8 @@ class FullGame(
 
   private val _trump : Card?
 
+  private var _wins : ImmutableMap< PlayerIdentity, Int >
+
   override val trump : Card?
     get() = _trump
 
@@ -93,9 +104,12 @@ class FullGame(
     _players = ImmutableList.copyOf( playerActorsBuilder )
 
     _trump = if( numberOfCardsPlayed < _cards.size ) _cards[ numberOfCardsPlayed ] else null
+
+    _wins = newFilledMap( playerIdentities, 0 )
   }
 
   private var _bets : ImmutableMap< PlayerIdentity, Int >? = null
+
 
   /**
    * We recreate a fresh instance each time we add an element. But this saves defensive copies
@@ -116,18 +130,15 @@ class FullGame(
   fun askPlayersToDecide() {
     check( turn < decisionCount )
 
-    fun < T >ImmutableList< T >.append( element : T ) : ImmutableList< T > {
-      return ImmutableList.builder< T >().addAll( this ).add( element ).build()
-    }
-
     _decisionsForThisTurn = ImmutableList.of()
     for( playerActor in _players ) {  // TODO: start with last winner if any.
       val cardPlayed = playerActor.decide()
-      val decision = Decision( _turn, playerActor.playerIdentity, cardPlayed )
+      val decision = Decision(playerActor.playerIdentity, cardPlayed )
       _decisionsForThisTurn = _decisionsForThisTurn.append( decision )
     }
     val winningDecision = best( decisionsForThisTurn, trump )
     logger.info( "Winning decision: $winningDecision ")
+    _wins = _wins.increment( winningDecision.playerIdentity )
     _turn ++
   }
 
@@ -140,6 +151,9 @@ class FullGame(
         return current
       }
     }
+
+  override val wins : Map< PlayerIdentity, Int >
+    get() = _wins
 
   override val turn : Int
     get() = _turn
@@ -155,6 +169,15 @@ class FullGame(
     appendable
         .indent( i ).append( FullGame::class.simpleName ).append( '{' ).eol()
         .indentMore( i ).append( "Trump card: " ).append( trumpAsString ).eol()
+        .indentMore( i ).append( "Turn: " ).append( turn.toString() ).eol()
+
+    appendable.indentMore( i ).append( "Wins: " )
+    wins.entries.joinTo( appendable, transform = { e -> e.key.name + "=" + e.value } )
+    appendable.eol()
+
+    appendable.indentMore( i ).append( "Bets: " )
+    bets.entries.joinTo( appendable, transform = { e -> e.key.name + "=" + e.value } )
+    appendable.eol()
 
     for( playerActor in _players ) {
       playerActor.dump( i + 1, appendable )
@@ -163,14 +186,13 @@ class FullGame(
         .indent( i ).append( '}' ).eol()
   }
 
-
 }
 
 /**
  * Describes a [PlayerActor] playing one [Card]. Every [PlayerActor] can see a [Decision].
  * TODO: add some useful precomputed states.
  */
-data class Decision( val turnIndex : Int, val playerIdentity : PlayerIdentity, val card : Card ) {
+data class Decision( val playerIdentity : PlayerIdentity, val card : Card ) {
   companion object {
     val comparator : Comparator< Decision > = Comparator( { d1, d2 ->
       Figure.comparatorByStrength.compare( d1.card.figure, d2.card.figure ) } )

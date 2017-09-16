@@ -51,11 +51,12 @@ enum class Suite( val color : Color, val asciiSymbol : Char ) {
 
 /**
  * A [Card] has a [Figure] and a [Suite].
- * The [Packet] is part of the [Card]'s identity because card's back may differ depending
- * on the originating packet.
  * There is no support for something like wildcard, which would imply [Figure] and [Suite] nullity.
  */
-data class Card constructor( val packet : Packet, val figure : Figure, val suite : Suite ) {
+class Card constructor(
+    val figure : Figure,
+    val suite : Suite
+) {
   override fun toString() : String {
     return javaClass.simpleName + "{" + figure.asciiSymbol + suite.asciiSymbol + "}"
   }
@@ -78,7 +79,7 @@ class Packet {
     for( selector in selectors ) {
       for( suite in Suite.values() ) {
         for( figure in Figure.values() ) {
-          if( selector.invoke( figure, suite ) ) builder.add( Card( this, figure, suite ) )
+          if( selector.invoke( figure, suite ) ) builder.add( Card( figure, suite ) )
         }
       }
     }
@@ -86,6 +87,7 @@ class Packet {
   }
 
   constructor() : this( { _ , _ -> true } )
+
 
 }
 
