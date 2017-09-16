@@ -10,7 +10,7 @@ import io.github.caillette.rikiki.game.Strategy
  */
 class FirstAvailable : Strategy {
 
-  override fun bet( hand : List< Card > ) : Int {
+  override fun bid( hand : List< Card > ) : Int {
     return 0
   }
 

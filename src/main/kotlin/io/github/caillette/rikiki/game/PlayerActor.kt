@@ -36,7 +36,7 @@ class PlayerActor(
    * Must be called before first call to [decisionForCurrentTrick].
    */
   fun bet() : Int {
-    val bet = _strategy.bet( _hand )
+    val bet = _strategy.bid( _hand )
     logger.info( "Betting $bet." )
     return bet
   }

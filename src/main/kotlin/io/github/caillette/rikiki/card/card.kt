@@ -22,7 +22,7 @@ enum class Figure( val asciiSymbol : Char ) {
   QUEEN( 'Q' ),
   KING( 'K' ) ;
 
-  private fun strength() : Int {
+  public fun strength() : Int {
     return if( this == ACE ) KING.ordinal + 1 else ordinal
   }
 
