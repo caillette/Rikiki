@@ -42,29 +42,29 @@ fun score( bid : Int, trick : Int ) : Int {
 }
 
 
-fun best( decisions : List<Decision>, trump : Card? ) : Decision {
+fun best( decisions : List< Decision >, trump : Suite? ) : Decision {
   check( decisions.isNotEmpty() )
 
-  fun select( decisions : List<Decision>, suite : Suite ) : MutableList<Decision> {
+  fun select( decisions : List< Decision >, suite : Suite ) : MutableList< Decision > {
     return ArrayList( decisions.filter { it.card.suite == suite } )
   }
 
-  fun sameSuiteAsFirst() : MutableList<Decision> {
+  fun sameSuiteAsFirst() : MutableList< Decision > {
     return select( decisions, decisions.first().card.suite )
   }
 
-  val selectable : MutableList<Decision>
+  val selectable : MutableList< Decision >
   selectable = if( trump == null ) {
     sameSuiteAsFirst()
   } else {
-    val trumpOnly = select( decisions, trump.suite )
+    val trumpOnly = select( decisions, trump )
     if( trumpOnly.isEmpty() ) sameSuiteAsFirst() else trumpOnly
   }
-  selectable.sortWith(Decision.comparator)
+  selectable.sortWith( Decision.comparator )
   return selectable.first()
 }
 
-fun chosable( cards : List<Card>, first : Card? ) : Set<Card> {
+fun chosable( cards : List< Card >, first : Card? ) : Set< Card > {
   return if( first == null ) {
     ImmutableSet.copyOf( cards )
   } else {

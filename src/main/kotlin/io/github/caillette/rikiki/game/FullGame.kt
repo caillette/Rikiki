@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import io.github.caillette.rikiki.toolkit.Dumpable
 import io.github.caillette.rikiki.card.Card
+import io.github.caillette.rikiki.card.Suite
 import io.github.caillette.rikiki.toolkit.addTo
 import io.github.caillette.rikiki.toolkit.append
 import io.github.caillette.rikiki.toolkit.eol
@@ -41,7 +42,7 @@ class FullGame(
 
   internal val _players : ImmutableList< PlayerActor >
 
-  private val _trump : Card?
+  private val _trump : Suite?
 
   private var _trickWins : ImmutableMap< PlayerIdentity, Int >
 
@@ -79,7 +80,7 @@ class FullGame(
     }
     _players = ImmutableList.copyOf( playerActorsBuilder )
 
-    _trump = if( numberOfCardsPlayed < _cards.size ) _cards[ numberOfCardsPlayed ] else null
+    _trump = if( numberOfCardsPlayed < _cards.size ) _cards[ numberOfCardsPlayed ].suite else null
     _trickWins = newFilledMap(playerIdentities, 0)
     _scores = newFilledMap(playerIdentities, 0)
   }
@@ -100,7 +101,7 @@ class FullGame(
 
     _decisionsForThisTrick = ImmutableList.of()
     for( playerActor in _players ) {  // TODO: start with last winner if any.
-      val cardPlayed = playerActor.decide()
+      val cardPlayed = playerActor.decisionForCurrentTrick()
       val decision = Decision(playerActor.playerIdentity, cardPlayed )
       _decisionsForThisTrick = _decisionsForThisTrick.append( decision )
     }
@@ -119,7 +120,7 @@ class FullGame(
     return winningDecision
   }
 
-  override val trump : Card?
+  override val trump : Suite?
     get() = _trump
 
   override val trick : Int

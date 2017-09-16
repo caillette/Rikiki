@@ -41,8 +41,7 @@ class FullGameTest {
     assertMatches( Fixture.KING_OF_CLUBS, bob._hand[ 0 ] )
     assertMatches( Fixture.QUEEN_OF_HEARTS, alice._hand[ 1 ] )
     assertMatches( Fixture.TEN_OF_DIAMONDS, bob._hand[ 1 ] )
-    assertNotNull( fullGame.trump )
-    assertMatches( Fixture.TWO_OF_CLUBS, fullGame.trump!! )
+    assertSame( Fixture.TWO_OF_CLUBS.suite, fullGame.trump )
   }
 
 
@@ -111,7 +110,7 @@ fun assertMatches( cardPattern : Fixture.CardPattern, card : Card ) {
 
 object Fixture {
 
-  data class CardPattern( private val figure : Figure, private val suite : Suite ) {
+  data class CardPattern( private val figure : Figure, val suite : Suite ) {
     val forCard : ( Card ) -> Boolean = { card -> card.figure == figure && card.suite == suite }
     val raw : ( Figure, Suite ) -> Boolean = { f, s -> f == figure && s == suite }
   }

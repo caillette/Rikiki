@@ -1,7 +1,6 @@
 package io.github.caillette.rikiki.game
 
 import io.github.caillette.rikiki.toolkit.Dumpable
-import io.github.caillette.rikiki.game.ansiString
 import io.github.caillette.rikiki.card.Card
 import io.github.caillette.rikiki.toolkit.eol
 import io.github.caillette.rikiki.toolkit.indent
@@ -32,7 +31,7 @@ class PlayerActor(
   }
 
   /**
-   * Must be called before first call to [decide].
+   * Must be called before first call to [decisionForCurrentTrick].
    */
   fun bet() : Int {
     val bet = 0
@@ -40,9 +39,9 @@ class PlayerActor(
     return bet
   }
 
-  fun decide() : Card {
+  fun decisionForCurrentTrick() : Card {
     // Keep it simple for now.
-    val chosen = chosable(_hand, game.firstCard).first()
+    val chosen = chosable( _hand, game.firstCard ).first()
     _hand.remove( chosen )
     logger.info( "Deciding $chosen." )
     return chosen

@@ -1,6 +1,7 @@
 package io.github.caillette.rikiki.game
 
 import io.github.caillette.rikiki.card.Card
+import io.github.caillette.rikiki.card.Suite
 
 /**
  * Describes what everybody can see. [PlayerActor] can safely access to every member.
@@ -20,7 +21,7 @@ abstract class PublicGame(
     check( trickCount > 0 )
   }
 
-  abstract val trump : Card?
+  abstract val trump : Suite?
 
   /**
    * @return an immutable [List].

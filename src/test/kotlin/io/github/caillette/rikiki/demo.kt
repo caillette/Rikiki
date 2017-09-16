@@ -23,7 +23,7 @@ fun main( arguments : Array< String > ) {
   if( trump == null ) {
     report.append( "No trump").eol()
   } else {
-    report.append( "Trump: ").append( ansiString( trump.suite ) ).eol()
+    report.append( "Trump: ").append( ansiString( trump ) ).eol()
   }
 
   fullGame.runTheBids()

@@ -2,8 +2,6 @@ package io.github.caillette.rikiki.card
 
 import com.google.common.collect.ImmutableSet
 import java.util.*
-import kotlin.Comparator
-import kotlin.comparisons.reversed
 
 /**
  * Order is the same as for corresponding Unicode characters, which probably follows some
@@ -30,7 +28,7 @@ enum class Figure( val asciiSymbol : Char ) {
 
   object comparatorByStrength : Comparator< Figure > {
     override fun compare( o1 : Figure, o2 : Figure) : Int {
-      return o2.strength() - o1.strength()  // Reversed.
+      return o2.strength() - o1.strength()  // Reversed, greatest comes first.
     }
   }
 
@@ -63,27 +61,25 @@ class Card constructor(
   override fun toString() : String {
     return javaClass.simpleName + "{" + figure.asciiSymbol + suite.asciiSymbol + "}"
   }
-
 }
 
 
 /**
- * A [Packet] is an immutable object containing [Card]s.
+ * A [Packet] is an immutable object generating [Card]s from [Figure] and [Suite].
  */
 class Packet {
-  val cards : Set<Card >
+  val cards : Set< Card >
 
   /**
    * @param selectors so we can customize what [cards] we put in.
    */
-  constructor( vararg selectors : ( figure : Figure, suite : Suite) -> Boolean ) {
-    val builder = ImmutableSet.Builder<Card >()
+  constructor( vararg selectors : ( figure : Figure, suite : Suite ) -> Boolean ) {
+    val builder = ImmutableSet.Builder< Card >()
     // Apply selectors first to make selection match their order.
     for( selector in selectors ) {
       for( suite in Suite.values() ) {
         for( figure in Figure.values() ) {
-          if( selector.invoke( figure, suite ) ) builder.add(
-              Card(figure, suite))
+          if( selector.invoke( figure, suite ) ) builder.add( Card( figure, suite ) )
         }
       }
     }
@@ -95,7 +91,7 @@ class Packet {
 
 }
 
-fun shuffle( vararg packets : Packet) : Set< Card > {
+fun shuffle( vararg packets : Packet ) : Set< Card > {
   return shuffle( Random( 0 ), *packets )
 }
 
