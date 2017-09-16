@@ -21,9 +21,9 @@ fun main( arguments : Array< String > ) {
 
   val trump = fullGame.trump
   if( trump == null ) {
-    report.append( "No trump card").eol()
+    report.append( "No trump").eol()
   } else {
-    report.append( "Trump card: ").append( ansiString( trump ) ).eol()
+    report.append( "Trump: ").append( ansiString( trump.suite ) ).eol()
   }
 
   fullGame.runTheBids()

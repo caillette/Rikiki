@@ -37,6 +37,27 @@ fun unicodeCharacter( card : Card ) : Char {
   return ( 0xdca0 + figureOffset + suiteOffset ).toChar()
 }
 
+fun unicodeCharacter( suite : Suite ) : Char {
+  return when( suite ) {
+    Suite.SPADE -> '\u2660'
+    Suite.HEART -> '\u2665'
+    Suite.DIAMOND -> '\u2666'
+    Suite.CLUB -> '\u2663'
+  }
+}
+
+fun ansiString( suite : Suite ) : String {
+  val builder = StringBuilder()
+    builder
+        .append( "\u001B[" )
+        .append( ansiColor( suite ) )
+        .append( ";m" )
+        .append( unicodeCharacter( suite ) )
+
+  builder.append( "\u001B[0m" )
+  return builder.toString()
+}
+
 fun ansiColor( suite : Suite, whiteBackground : Boolean = false ) : Int {
   return when( suite.color ) {
     Color.RED -> 31
@@ -71,6 +92,22 @@ fun appendPlayerValues(
   appendable.append( "$title: " )
   map.entries.joinTo( appendable, transform = { e -> e.key.name + "=" + e.value } )
   appendable.eol()
+}
+
+fun main( parameters : Array< String > ) {
+  println( "\u2660\u2665\u2666\u2663" )
+  println( "" +
+      unicodeCharacter( Suite.SPADE ) +
+      unicodeCharacter( Suite.HEART ) +
+      unicodeCharacter( Suite.DIAMOND ) +
+      unicodeCharacter( Suite.CLUB )
+  )
+  println( 
+      ansiString( Suite.SPADE ) +
+      ansiString( Suite.HEART ) +
+      ansiString( Suite.DIAMOND ) +
+      ansiString( Suite.CLUB )
+  )
 }
 
 
