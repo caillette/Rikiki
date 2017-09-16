@@ -12,6 +12,7 @@ import io.github.caillette.rikiki.toolkit.eol
 import io.github.caillette.rikiki.toolkit.indent
 import io.github.caillette.rikiki.toolkit.indentMore
 import io.github.caillette.rikiki.toolkit.newFilledMap
+import io.github.caillette.rikiki.toolkit.rollFirst
 import mu.KotlinLogging
 
 /**
@@ -41,6 +42,8 @@ class FullGame(
   internal val _cards : ImmutableList< Card >
 
   internal val _players : ImmutableList< PlayerActor >
+
+  private var _firstToPlay : PlayerActor
 
   private val _trump : Suite?
 
@@ -79,6 +82,7 @@ class FullGame(
       PlayerActor(this, playerIdentity, initialHands[index])
     }
     _players = ImmutableList.copyOf( playerActorsBuilder )
+    _firstToPlay = _players.first()
 
     _trump = if( numberOfCardsPlayed < _cards.size ) _cards[ numberOfCardsPlayed ].suite else null
     _trickWins = newFilledMap(playerIdentities, 0)
@@ -100,13 +104,17 @@ class FullGame(
     _phase = Phase.DECIDING
 
     _decisionsForThisTrick = ImmutableList.of()
-    for( playerActor in _players ) {  // TODO: start with last winner if any.
+    val playersInOrder = rollFirst( _players, _firstToPlay )
+
+    for( playerActor in playersInOrder ) {
       val cardPlayed = playerActor.decisionForCurrentTrick()
       val decision = Decision(playerActor.playerIdentity, cardPlayed )
       _decisionsForThisTrick = _decisionsForThisTrick.append( decision )
     }
     val winningDecision = best(decisionsForThisTrick, trump )
     logger.info( "Winning decision: $winningDecision " )
+
+    _firstToPlay = _players.find( winningDecision.playerIdentity )
     _trickWins = _trickWins.addTo( winningDecision.playerIdentity, 1 )
     _trick ++
 
@@ -181,3 +189,8 @@ class FullGame(
   }
 
 }
+
+private fun ImmutableList< PlayerActor >.find( playerIdentity : PlayerIdentity ) : PlayerActor {
+  return this.first{ playerActor -> playerActor.playerIdentity == playerIdentity }
+}
+

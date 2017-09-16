@@ -8,7 +8,6 @@ import io.github.caillette.rikiki.game.PlayerIdentity
 import io.github.caillette.rikiki.game.score
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -85,8 +84,8 @@ class FullGameTest {
 
     fullGame.dumpToConsole()
 
-    assertEquals( -2, fullGame.scores[ Fixture.alice ] )
-    assertEquals( -2, fullGame.scores[ Fixture.bob ] )
+    assertEquals( 10, fullGame.scores[ Fixture.alice ] )
+    assertEquals( -4, fullGame.scores[ Fixture.bob ] )
 
   }
 
