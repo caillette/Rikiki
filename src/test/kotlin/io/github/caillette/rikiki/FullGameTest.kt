@@ -41,37 +41,56 @@ class FullGameTest {
   @Test
   fun askPlayersToBet() {
     val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
-    assertThrows( IllegalStateException::class.javaObjectType, { fullGame.bets[ Fixture.alice ] } )
+    assertThrows( IllegalStateException::class.javaObjectType, { fullGame.bids[ Fixture.alice ] } )
     fullGame.askPlayersToBet()
-    assertEquals( fullGame.bets[ Fixture.alice ], 0 )
-    assertEquals( fullGame.bets[ Fixture.bob ], 0 )
+    assertEquals( fullGame.bids[ Fixture.alice ], 0 )
+    assertEquals( fullGame.bids[ Fixture.bob ], 0 )
   }
 
 
   @Test
-  fun askPlayersToDecide() {
+  fun completeGame() {
     val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
     logger.info( "Trump is ${fullGame.trump}." )
     val alice = fullGame._players[ 0 ]
     val bob = fullGame._players[ 1 ]
 
+    assertEquals( 0, fullGame.scores[ Fixture.alice ] )
+    assertEquals( 0, fullGame.scores[ Fixture.bob ] )
+
     fullGame.askPlayersToBet()
     assertEquals( alice._hand.size, 2 )
     assertEquals( bob._hand.size, 2 )
-    assertEquals( fullGame.decisionsForThisTurn.size, 0 )
+    assertEquals( fullGame.decisionsForThisTrick.size, 0 )
 
     fullGame.askPlayersToDecide()
     assertEquals( alice._hand.size, 1 )
     assertEquals( bob._hand.size, 1 )
-    assertEquals( fullGame.decisionsForThisTurn.size, 2 )
+    assertEquals( fullGame.decisionsForThisTrick.size, 2 )
 
-    fullGame.dumpToConsole()
+    assertEquals( 0, fullGame.scores[ Fixture.alice ] )
+    assertEquals( 0, fullGame.scores[ Fixture.bob ] )
 
     fullGame.askPlayersToDecide()
     assertEquals( alice._hand.size, 0 )
     assertEquals( bob._hand.size, 0 )
-    assertEquals( fullGame.decisionsForThisTurn.size, 2 )
+    assertEquals( fullGame.decisionsForThisTrick.size, 2 )
 
+    fullGame.dumpToConsole()
+
+    assertEquals( -2, fullGame.scores[ Fixture.alice ] )
+    assertEquals( -2, fullGame.scores[ Fixture.bob ] )
+
+  }
+
+  @Test
+  fun score() {
+    assertEquals( score( 0, 0 ), 10 )
+    assertEquals( score( 1, 1 ), 12 )
+    assertEquals( score( 2, 2 ), 14 )
+    assertEquals( score( 0, 1 ), -2 )
+    assertEquals( score( 0, 2 ), -4 )
+    assertEquals( score( 1, 2 ), -2 )
   }
 
   private val logger = KotlinLogging.logger {}

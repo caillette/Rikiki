@@ -5,7 +5,8 @@ import java.util.*
 import kotlin.Comparator
 
 /**
- * Order is the same as for corresponding Unicode characters.
+ * Order is the same as for corresponding Unicode characters, which probably follows some
+ * well-known convention.
  */
 enum class Figure( val asciiSymbol : Char ) {
   ACE( '1' ),
@@ -40,7 +41,8 @@ enum class Color {
 }
 
 /**
- * Order is the same as for corresponding Unicode characters.
+ * Order is the same as for corresponding Unicode characters, which probably follows some
+ * well-known convention.
  */
 enum class Suite( val color : Color, val asciiSymbol : Char ) {
   SPADE( Color.BLACK, 'S' ),

@@ -1,11 +1,10 @@
 package io.github.caillette.rikiki
 
-import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import io.github.caillette.rikiki.toolkit.append
-import io.github.caillette.rikiki.toolkit.increment
+import io.github.caillette.rikiki.toolkit.addTo
 import io.github.caillette.rikiki.toolkit.newFilledMap
 import mu.KotlinLogging
 
@@ -16,15 +15,17 @@ data class PlayerIdentity( val name : String )
  * Values are read-only and guaranteed to not change while [FullGame] calls methods of
  * [PlayerActor].
  *
- * @param decisionCount must be 1 or greater.
+ * Terminology based on <a href='https://www.pagat.com/exact/ohhell.html'>Oh Hell!</a> rules.
+ *
+ * @param trickCount how many times every [PlayerActor] gets to decide. Must be 1 or greater.
  */
 abstract class PublicGame(
     val playerIdentities : Set< PlayerIdentity >,
-    val decisionCount : Int
+    val trickCount : Int
 ) {
 
   init {
-    check( decisionCount > 0 )
+    check( trickCount > 0 )
   }
 
   abstract val trump : Card?
@@ -32,9 +33,9 @@ abstract class PublicGame(
   /**
    * @return an immutable [List].
    */
-  abstract val decisionsForThisTurn : List< Decision >
+  abstract val decisionsForThisTrick : List< Decision >
 
-  abstract val turn : Int
+  abstract val trick : Int
 
   abstract val firstCard : Card?
 
@@ -42,12 +43,20 @@ abstract class PublicGame(
    * @return an immutable [Map] reflecting last bets.
    * @throws IllegalStateException if [PlayerActor.bet] was not called beforehand for everybody.
    */
-  abstract val bets : Map< PlayerIdentity, Int >
+  abstract val bids : Map< PlayerIdentity, Int >
+
+  abstract val scores : Map< PlayerIdentity, Int >
 
   /**
    * @return an immutable [Map] reflecting last wins.
    */
-  abstract val wins : Map< PlayerIdentity, Int >
+  abstract val tricksWon : Map< PlayerIdentity, Int >
+
+  abstract val phase : Phase
+
+  enum class Phase {
+    NEW, BIDS_DONE, DECIDING, COMPLETE
+  }
 
 }
 
@@ -80,10 +89,22 @@ class FullGame(
 
   private val _trump : Card?
 
-  private var _wins : ImmutableMap< PlayerIdentity, Int >
+  private var _tricksWon : ImmutableMap< PlayerIdentity, Int >
 
-  override val trump : Card?
-    get() = _trump
+  private var _scores : ImmutableMap< PlayerIdentity, Int >
+
+  private var _bid : ImmutableMap< PlayerIdentity, Int >? = null
+
+  /**
+   * We recreate a fresh instance each time we add an element. But this saves defensive copies
+   * when [PlayerActor] calls [PublicGame.decisionsForThisTrick].
+   * TODO: use a backward-chained list.
+   */
+  private var _decisionsForThisTrick : ImmutableList< Decision > = ImmutableList.of()
+
+  private var _trick = 0
+
+  private var _phase = Phase.NEW
 
   init {
     check( cards.size >= playerIdentities.size )
@@ -104,80 +125,94 @@ class FullGame(
     _players = ImmutableList.copyOf( playerActorsBuilder )
 
     _trump = if( numberOfCardsPlayed < _cards.size ) _cards[ numberOfCardsPlayed ] else null
-
-    _wins = newFilledMap( playerIdentities, 0 )
+    _tricksWon = newFilledMap( playerIdentities, 0 )
+    _scores = newFilledMap( playerIdentities, 0 )
   }
-
-  private var _bets : ImmutableMap< PlayerIdentity, Int >? = null
-
-
-  /**
-   * We recreate a fresh instance each time we add an element. But this saves defensive copies
-   * when [PlayerActor] calls [PublicGame.decisionsForThisTurn].
-   */
-  private var _decisionsForThisTurn : ImmutableList< Decision > = ImmutableList.of()
-
-  private var _turn = 0
 
   fun askPlayersToBet() {
     val betsBuilder : MutableMap< PlayerIdentity, Int > = mutableMapOf()
     for( playerActor in _players ) {
       betsBuilder[ playerActor.playerIdentity ] = playerActor.bet()
     }
-    _bets = ImmutableMap.copyOf( betsBuilder )
+    _bid = ImmutableMap.copyOf( betsBuilder )
+    _phase = Phase.BIDS_DONE
   }
 
   fun askPlayersToDecide() {
-    check( turn < decisionCount )
+    check( trick < trickCount)
+    check( _phase == Phase.BIDS_DONE || _phase == Phase.DECIDING )
+    _phase = Phase.DECIDING
 
-    _decisionsForThisTurn = ImmutableList.of()
+    _decisionsForThisTrick = ImmutableList.of()
     for( playerActor in _players ) {  // TODO: start with last winner if any.
       val cardPlayed = playerActor.decide()
       val decision = Decision(playerActor.playerIdentity, cardPlayed )
-      _decisionsForThisTurn = _decisionsForThisTurn.append( decision )
+      _decisionsForThisTrick = _decisionsForThisTrick.append( decision )
     }
-    val winningDecision = best( decisionsForThisTurn, trump )
+    val winningDecision = best(decisionsForThisTrick, trump )
     logger.info( "Winning decision: $winningDecision ")
-    _wins = _wins.increment( winningDecision.playerIdentity )
-    _turn ++
+    _tricksWon = _tricksWon.addTo( winningDecision.playerIdentity, 1 )
+    _trick ++
+
+    if( trick >= trickCount) {
+      _phase = Phase.COMPLETE
+      for( player in playerIdentities ) {
+        _scores = _scores.addTo( player, score( bids[ player ]!!, tricksWon[ player ]!! ) )
+      }
+    }
   }
 
-  override val bets : Map< PlayerIdentity, Int >
+  override val trump : Card?
+    get() = _trump
+
+  override val trick : Int
+    get() = _trick
+
+  override val bids : Map< PlayerIdentity, Int >
     get() {
-      val current = _bets
+      val current = _bid
       if( current == null ) {
-        throw IllegalStateException( "Bets must occur first" )
+        throw IllegalStateException( "Bids must occur first" )
       } else {
         return current
       }
     }
 
-  override val wins : Map< PlayerIdentity, Int >
-    get() = _wins
+  override val scores : Map< PlayerIdentity, Int >
+    get() = _scores
 
-  override val turn : Int
-    get() = _turn
+  override val tricksWon : Map< PlayerIdentity, Int >
+    get() = _tricksWon
 
-  override val decisionsForThisTurn : List< Decision >
-    get() = _decisionsForThisTurn
+  override val decisionsForThisTrick : List< Decision >
+    get() = _decisionsForThisTrick
 
   override val firstCard : Card?
-    get() = if( _decisionsForThisTurn.isEmpty() ) null else _decisionsForThisTurn.first().card
+    get() = if( _decisionsForThisTrick.isEmpty() ) null else _decisionsForThisTrick.first().card
+
+  override val phase : Phase
+    get() = _phase
+
 
   override fun dump( i : Int, appendable : Appendable ) {
+
+    fun appendMap( name : String, map : Map< PlayerIdentity, Int > ) {
+      appendable.indentMore( i ).append( "$name: " )
+      map.entries.joinTo( appendable, transform = { e -> e.key.name + "=" + e.value } )
+      appendable.eol()
+    }
+
     val trumpAsString = if( _trump == null ) "" else ansiString( _trump )
     appendable
         .indent( i ).append( FullGame::class.simpleName ).append( '{' ).eol()
         .indentMore( i ).append( "Trump card: " ).append( trumpAsString ).eol()
-        .indentMore( i ).append( "Turn: " ).append( turn.toString() ).eol()
+        .indentMore( i ).append( "Turn: " ).append( trick.toString() ).eol()
 
-    appendable.indentMore( i ).append( "Wins: " )
-    wins.entries.joinTo( appendable, transform = { e -> e.key.name + "=" + e.value } )
-    appendable.eol()
-
-    appendable.indentMore( i ).append( "Bets: " )
-    bets.entries.joinTo( appendable, transform = { e -> e.key.name + "=" + e.value } )
-    appendable.eol()
+    if( phase != Phase.NEW ) {
+      appendMap( "Bets", bids )
+    }
+    appendMap( "Wins", tricksWon )
+    appendMap( "Scores", scores )
 
     for( playerActor in _players ) {
       playerActor.dump( i + 1, appendable )
@@ -196,6 +231,20 @@ data class Decision( val playerIdentity : PlayerIdentity, val card : Card ) {
   companion object {
     val comparator : Comparator< Decision > = Comparator( { d1, d2 ->
       Figure.comparatorByStrength.compare( d1.card.figure, d2.card.figure ) } )
+  }
+}
+
+/**
+ * Calculate each [PlayerIdentity]'s score.
+ * Formula from [Rikiki szabályok Wikipedián](https://hu.wikipedia.org/wiki/Rikiki) (in Hungarian).
+ */
+fun score( bid : Int, trick : Int ) : Int {
+  check( bid >= 0 )
+  check( trick >= 0 )
+  return if( bid == trick ) {
+    10 + 2 * trick
+  } else {
+    Math.abs( bid - trick ) * -2
   }
 }
 

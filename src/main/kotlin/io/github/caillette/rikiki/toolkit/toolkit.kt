@@ -13,13 +13,13 @@ fun< K, V > newFilledMap( keys : Set< K >, value : V ) : ImmutableMap< K, V > {
   return builder.build()
 }
 
-fun< K > ImmutableMap< K, Int >.increment( key : K ) : ImmutableMap< K, Int > {
+fun< K > ImmutableMap< K, Int >.addTo( key : K, increment : Int ) : ImmutableMap< K, Int > {
   val builder : ImmutableMap.Builder< K, Int > = ImmutableMap.builder()
   var found = false
   for( entry in entries ) {
     if( entry!!.key == key ) {
       found = true
-      builder.put( entry.key, entry.value + 1 )
+      builder.put( entry.key, entry.value + increment )
     } else {
       builder.put( entry.key, entry.value )
     }
