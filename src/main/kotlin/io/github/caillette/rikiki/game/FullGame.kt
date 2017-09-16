@@ -8,6 +8,7 @@ import io.github.caillette.rikiki.card.Card
 import io.github.caillette.rikiki.card.Suite
 import io.github.caillette.rikiki.toolkit.addTo
 import io.github.caillette.rikiki.toolkit.append
+import io.github.caillette.rikiki.toolkit.checkUnique
 import io.github.caillette.rikiki.toolkit.eol
 import io.github.caillette.rikiki.toolkit.indent
 import io.github.caillette.rikiki.toolkit.indentMore
@@ -67,6 +68,8 @@ class FullGame(
   init {
     check( cards.size >= playerIdentities.size )
     check( playerIdentities.size > 1 )
+    checkUnique( playerIdentities, { playerIdentity -> playerIdentity.name } )
+
     _cards = ImmutableSet.copyOf(cards).asList()
 
     val numberOfCardsPlayed = playerIdentities.size * decisionCount

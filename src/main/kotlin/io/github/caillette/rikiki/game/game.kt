@@ -5,13 +5,22 @@ import io.github.caillette.rikiki.card.Card
 import io.github.caillette.rikiki.card.Figure
 import io.github.caillette.rikiki.card.Suite
 
-data class PlayerIdentity( val name : String )
+data class PlayerIdentity(
+    val name : String,
+    val strategyFactory : Strategy.Factory = Strategy.defaultFactory
+)
 
-fun players( vararg names : String ) : Set< PlayerIdentity > {
+fun players(
+    strategyFactories : List< Strategy.Factory > = listOf(),
+    vararg names : String
+) : Set< PlayerIdentity > {
   val builder : ImmutableSet.Builder< PlayerIdentity > = ImmutableSet.builder()
-  @Suppress( "LoopToCallChain" )
+  val strategyFactoryIterator = strategyFactories.iterator()
   for( name in names ) {
-    builder.add( PlayerIdentity( name ) )
+    val strategyFactory =
+        if( strategyFactoryIterator.hasNext() ) strategyFactoryIterator.next()
+        else Strategy.defaultFactory
+    builder.add( PlayerIdentity( name, strategyFactory ) )
   }
   return builder.build()
 }

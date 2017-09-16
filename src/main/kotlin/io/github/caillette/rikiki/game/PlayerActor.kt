@@ -25,23 +25,26 @@ class PlayerActor(
           playerIdentity.name.replace( Regex( "[^a-zA-Z0-9]+" ), "" ) )
 
   val _hand : MutableList< Card >
+  val _strategy : Strategy
 
   init {
     _hand = ArrayList( initialHand )
+    _strategy = playerIdentity.strategyFactory.newStrategy( game, playerIdentity )
   }
 
   /**
    * Must be called before first call to [decisionForCurrentTrick].
    */
   fun bet() : Int {
-    val bet = 0
+    val bet = _strategy.bet( _hand )
     logger.info( "Betting $bet." )
     return bet
   }
 
   fun decisionForCurrentTrick() : Card {
-    // Keep it simple for now.
-    val chosen = chosable( _hand, game.firstCard ).first()
+    val chosable = chosable( _hand, game.firstCard )
+    val chosen = _strategy.decideForTrick(_hand, chosable )
+    check( chosable.contains( chosen ) )
     _hand.remove( chosen )
     logger.info( "Deciding $chosen." )
     return chosen

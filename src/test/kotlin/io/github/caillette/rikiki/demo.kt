@@ -7,18 +7,26 @@ import io.github.caillette.rikiki.game.PublicGame
 import io.github.caillette.rikiki.game.ansiString
 import io.github.caillette.rikiki.game.appendPlayerValues
 import io.github.caillette.rikiki.game.players
+import io.github.caillette.rikiki.strategy.ProbabilisticLight
 import io.github.caillette.rikiki.toolkit.eol
 import java.util.*
 
 fun main( arguments : Array< String > ) {
   val cards = shuffle( Random(), Packet(), Packet() )
-  val fullGame = FullGame( players( "Alice", "Bob", "Charlie", "Dylan", "Eddie" ), cards, 10 )
+  val fullGame = FullGame(
+      players(
+          listOf( ProbabilisticLight.factory ),
+          "Alice", "Bob", "Charlie", "Dylan", "Eddie"
+      ),
+      cards,
+      10
+  )
   val report = StringBuilder()
 
   report.eol().append( "Starting game with " )
       .append( fullGame.playerIdentities.size.toString() + " players for " )
       .append( fullGame.trickCount.toString() + " tricks " )
-      .append( "using " + fullGame.cardCount + " cards")
+      .append( "using " + fullGame.cardCount + " cards" )
       .eol()
 
   val trump = fullGame.trump
@@ -53,6 +61,13 @@ fun main( arguments : Array< String > ) {
   appendPlayerValues( report, "Scores", fullGame.scores )
   report.eol()
 
+  fullGame.playerIdentities.joinTo(
+      report,
+      separator = "\n",
+      transform = {
+        e -> e.name.padStart( nameMaximumLength ) + " using " + e.strategyFactory.name()
+      }
+  )
 
   println( report.toString() )
 
