@@ -45,19 +45,19 @@ class ProbabilisticLight(
 //
 //  }
 
-  override fun decideForTrick(
+  override fun decideForTurn(
       hand : List< Card >,
       chosable : Set< Card >
   ) : Card {
 
     if( chosable.size > 1 ) {
-      if( myWinsInThisTrick() < myBids() ) {
+      if( myWinsInThisTurn() < myBids() ) {
         val trumpCompliantCards = chosable.filter { it.suite == game.trump }
         if( trumpCompliantCards.isNotEmpty() ) {
           return trumpCompliantCards.first()
         }
-        if( trickCompletion() > 0.5 ) {
-          val strongerCards = strongerCards( chosable, cardsPlayedInThisTrick(), game.trump )
+        if( turnCompletion() > 0.5 ) {
+          val strongerCards = strongerCards( chosable, cardsPlayedInThisTurn(), game.trump )
           if( strongerCards.isNotEmpty() ) return strongerCards.first()
         }
       }

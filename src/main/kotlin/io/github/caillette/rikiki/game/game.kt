@@ -40,13 +40,13 @@ data class Decision( val playerIdentity : PlayerIdentity, val card : Card ) {
  * Calculate each [PlayerIdentity]'s score.
  * Formula from [Rikiki szabályok Wikipedián](https://hu.wikipedia.org/wiki/Rikiki) (in Hungarian).
  */
-fun score( bid : Int, trick : Int ) : Int {
+fun score( bid : Int, turn : Int ) : Int {
   check( bid >= 0 )
-  check( trick >= 0 )
-  return if( bid == trick ) {
-    10 + 2 * trick
+  check( turn >= 0 )
+  return if( bid == turn ) {
+    10 + 2 * turn
   } else {
-    Math.abs( bid - trick ) * -2
+    Math.abs( bid - turn ) * -2
   }
 }
 

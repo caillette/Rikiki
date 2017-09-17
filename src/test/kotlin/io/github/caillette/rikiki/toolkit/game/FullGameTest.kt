@@ -67,20 +67,20 @@ class FullGameTest {
     fullGame.runTheBids()
     assertEquals( alice._hand.size, 2 )
     assertEquals( bob._hand.size, 2 )
-    assertEquals( fullGame.decisionsForThisTrick.size, 0 )
+    assertEquals( fullGame.decisionsForThisTurn.size, 0 )
 
-    fullGame.runTheTrick()
+    fullGame.runTheTurn()
     assertEquals( alice._hand.size, 1 )
     assertEquals( bob._hand.size, 1 )
-    assertEquals( fullGame.decisionsForThisTrick.size, 2 )
+    assertEquals( fullGame.decisionsForThisTurn.size, 2 )
 
     assertEquals( 0, fullGame.scores[ Fixture.alice ] )
     assertEquals( 0, fullGame.scores[ Fixture.bob ] )
 
-    fullGame.runTheTrick()
+    fullGame.runTheTurn()
     assertEquals( alice._hand.size, 0 )
     assertEquals( bob._hand.size, 0 )
-    assertEquals( fullGame.decisionsForThisTrick.size, 2 )
+    assertEquals( fullGame.decisionsForThisTurn.size, 2 )
 
     fullGame.dumpToConsole()
 

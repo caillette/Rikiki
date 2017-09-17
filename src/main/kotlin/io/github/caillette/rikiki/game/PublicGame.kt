@@ -8,17 +8,15 @@ import io.github.caillette.rikiki.card.Suite
  * Values are read-only and guaranteed to not change while [FullGame] calls methods of
  * [PlayerActor].
  *
- * Terminology based on [Oh Hell!](https://www.pagat.com/exact/ohhell.html) rules.
- *
- * @param trickCount how many times every [PlayerActor] gets to decide. Must be 1 or greater.
+ * @param turnCount how many times every [PlayerActor] gets to decide. Must be 1 or greater.
  */
 abstract class PublicGame(
     val playerIdentities : Set< PlayerIdentity >,
-    val trickCount : Int
+    val turnCount : Int
 ) {
 
   init {
-    check( trickCount > 0 )
+    check( turnCount > 0 )
   }
 
   abstract val trump : Suite?
@@ -26,16 +24,16 @@ abstract class PublicGame(
   /**
    * @return an immutable [List].
    */
-  abstract val decisionsForThisTrick : List< Decision >
+  abstract val decisionsForThisTurn : List< Decision >
 
   /**
-   * Zero-based index of current trick.
-   * A trick is a sequence of calls to [PlayerActor.bet] (one call per [PlayerActor])
-   * then a sequence of calls to [PlayerActor.decisionForCurrentTrick] (one call per
+   * Zero-based index of current turn.
+   * A turn is a sequence of calls to [PlayerActor.bet] (one call per [PlayerActor])
+   * then a sequence of calls to [PlayerActor.decisionForCurrentTurn] (one call per
    * [PlayerActor] again).
-   * The value of [trickIndex] is capped by [trickCount].
+   * The value of [turnIndex] is capped by [turnCount].
    */
-  abstract val trickIndex : Int
+  abstract val turnIndex : Int
 
   abstract val firstCard : Card?
 
@@ -50,9 +48,9 @@ abstract class PublicGame(
   abstract val scores : Map< PlayerIdentity, Int >
 
   /**
-   * @return an immutable [Map] reflecting the sum of the wins for past tricks.
+   * @return an immutable [Map] reflecting the sum of the wins for past turns.
    */
-  abstract val trickWins : Map< PlayerIdentity, Int >
+  abstract val turnWins : Map< PlayerIdentity, Int >
 
   abstract val phase : Phase
 

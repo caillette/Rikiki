@@ -11,17 +11,17 @@ abstract class AbstractStrategy(
     protected val playerIdentity : PlayerIdentity
 ) : Strategy {
 
-  protected fun myWinsInThisTrick() : Int = game.trickWins[ playerIdentity ]!!
+  protected fun myWinsInThisTurn() : Int = game.turnWins[ playerIdentity ]!!
 
   protected fun myBids() : Int = game.bids[ playerIdentity ]!!
 
-  protected fun cardsPlayedInThisTrick() = game.decisionsForThisTrick.map { it.card }
+  protected fun cardsPlayedInThisTurn() = game.decisionsForThisTurn.map { it.card }
 
   /**
-   * From 0 (at the start of the trick) to 1 at the end.
+   * From 0 (at the start of the turn) to 1 at the end.
    */
-  protected fun trickCompletion() : Float =
-      game.decisionsForThisTrick.size.toFloat() / game.playerIdentities.size.toFloat()
+  protected fun turnCompletion() : Float =
+      game.decisionsForThisTurn.size.toFloat() / game.playerIdentities.size.toFloat()
 
   /**
    * @param cards must be non-empty.

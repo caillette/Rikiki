@@ -33,11 +33,11 @@ class Tournament(
   }
 
   private val playerNameMaximumLength = players.map { it -> it.name.length }.max() !!
-  private val highestTrickCount = packets.flatMap { it -> it.cards }.count() / players.size
+  private val highestTurnCount = packets.flatMap { it -> it.cards }.count() / players.size
 
-  fun trickCountSequence() : Sequence< Int > {
-    val baseRange = 2 until highestTrickCount
-    val baseSequence : Sequence< Int > = ( 2 until highestTrickCount ).asSequence()
+  fun turnCountSequence() : Sequence< Int > {
+    val baseRange = 2 until highestTurnCount
+    val baseSequence : Sequence< Int > = ( 2 until highestTurnCount ).asSequence()
     return baseSequence + baseRange.reversed()
   }
 
@@ -51,7 +51,7 @@ class Tournament(
 
     val strategyAppearance = players.strategyAppearance()
 
-    for( gameIndex in trickCountSequence() ) {
+    for( gameIndex in turnCountSequence() ) {
       val cards = shuffle( Random(), *packets )
       val fullGame = FullGame(
           players,
@@ -64,7 +64,7 @@ class Tournament(
       if( printDetail ) appendHeader( report, fullGame )
 
       while ( fullGame.phase != PublicGame.Phase.COMPLETE ) {
-        val winningDecision = fullGame.runTheTrick()
+        val winningDecision = fullGame.runTheTurn()
         if( printDetail ) appendDecision(report, fullGame, winningDecision)
       }
       if( printDetail ) appendFooter( report, fullGame )
@@ -84,7 +84,7 @@ class Tournament(
   private fun appendHeader( report : Appendable, fullGame : FullGame ) {
     report.eol().append( "Starting game with " )
         .append( fullGame.playerIdentities.size.toString() + " players for " )
-        .append( fullGame.trickCount.toString() + " tricks " )
+        .append( fullGame.turnCount.toString() + " turns " )
         .append( "using " + fullGame.cardCount + " cards" )
         .eol()
 
@@ -103,7 +103,7 @@ class Tournament(
       fullGame : FullGame,
       winningDecision : Decision
   ) {
-    for( ( playerIdentity, card ) in fullGame.decisionsForThisTrick ) {
+    for( ( playerIdentity, card ) in fullGame.decisionsForThisTurn ) {
       report.append( playerIdentity.name.padStart(playerNameMaximumLength) )
       report.append( ": " ).append( ansiString( card ) )
       if( playerIdentity == winningDecision.playerIdentity ) {
@@ -162,7 +162,7 @@ fun runTournaments(runCount : Int, printGameReport : Boolean) {
   for( tournamenIndex in 1..runCount ) {
     val tournament = Tournament()
     val newScores = tournament.run( printGameReport )
-    gameCount += tournament.trickCountSequence().count()
+    gameCount += tournament.turnCountSequence().count()
     newScores.forEach(
         { strategyScores[ it.key ] = strategyScores.getOrDefault( it.key, 0 ) + it.value } )
   }

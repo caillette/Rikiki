@@ -14,7 +14,7 @@ class FirstAvailable : Strategy {
     return 0
   }
 
-  override fun decideForTrick(
+  override fun decideForTurn(
       hand : List< Card >,
       chosable : Set< Card >
   ) : Card {

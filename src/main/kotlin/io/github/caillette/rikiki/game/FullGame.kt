@@ -48,7 +48,7 @@ class FullGame(
 
   private val _trump : Suite?
 
-  private var _trickWins : ImmutableMap< PlayerIdentity, Int >
+  private var _turnWins : ImmutableMap< PlayerIdentity, Int >
 
   private var _scores : ImmutableMap< PlayerIdentity, Int >
 
@@ -56,12 +56,12 @@ class FullGame(
 
   /**
    * We recreate a fresh instance each time we add an element. But this saves defensive copies
-   * when [PlayerActor] calls [PublicGame.decisionsForThisTrick].
+   * when [PlayerActor] calls [PublicGame.decisionsForThisTurn].
    * TODO: use a backward-chained list.
    */
-  private var _decisionsForThisTrick : ImmutableList< Decision > = ImmutableList.of()
+  private var _decisionsForThisTurn : ImmutableList< Decision > = ImmutableList.of()
 
-  private var _trickIndex = 0
+  private var _turnIndex = 0
 
   private var _phase = Phase.NEW
 
@@ -88,7 +88,7 @@ class FullGame(
     _firstToPlay = _players.first()
 
     _trump = if( numberOfCardsPlayed < _cards.size ) _cards[ numberOfCardsPlayed ].suite else null
-    _trickWins = newFilledMap(playerIdentities, 0)
+    _turnWins = newFilledMap(playerIdentities, 0)
     _scores = newFilledMap(playerIdentities, 0)
   }
 
@@ -101,30 +101,30 @@ class FullGame(
     _phase = Phase.BIDS_DONE
   }
 
-  fun runTheTrick() : Decision {
-    check( trickIndex < trickCount )
+  fun runTheTurn() : Decision {
+    check( turnIndex < turnCount )
     check( _phase == Phase.BIDS_DONE || _phase == Phase.DECIDING )
     _phase = Phase.DECIDING
 
-    _decisionsForThisTrick = ImmutableList.of()
+    _decisionsForThisTurn = ImmutableList.of()
     val playersInOrder = rollFirst( _players, _firstToPlay )
 
     for( playerActor in playersInOrder ) {
-      val cardPlayed = playerActor.decisionForCurrentTrick()
+      val cardPlayed = playerActor.decisionForCurrentTurn()
       val decision = Decision( playerActor.playerIdentity, cardPlayed )
-      _decisionsForThisTrick = _decisionsForThisTrick.append( decision )
+      _decisionsForThisTurn = _decisionsForThisTurn.append( decision )
     }
-    val winningDecision = best( decisionsForThisTrick, trump )
+    val winningDecision = best( decisionsForThisTurn, trump )
     logger.info( "Winning decision: $winningDecision " )
 
     _firstToPlay = _players.find( winningDecision.playerIdentity )
-    _trickWins = _trickWins.addTo( winningDecision.playerIdentity, 1 )
-    _trickIndex ++
+    _turnWins = _turnWins.addTo( winningDecision.playerIdentity, 1 )
+    _turnIndex ++
 
-    if( trickIndex >= trickCount) {
+    if( turnIndex >= turnCount) {
       _phase = Phase.COMPLETE
       for( player in playerIdentities ) {
-        _scores = _scores.addTo( player, score( bids[ player ]!!, trickWins[ player ] !! ) )
+        _scores = _scores.addTo( player, score( bids[ player ]!!, turnWins[ player ] !! ) )
       }
     }
 
@@ -134,8 +134,8 @@ class FullGame(
   override val trump : Suite?
     get() = _trump
 
-  override val trickIndex : Int
-    get() = _trickIndex
+  override val turnIndex : Int
+    get() = _turnIndex
 
   override val bids : Map< PlayerIdentity, Int >
     get() {
@@ -150,14 +150,14 @@ class FullGame(
   override val scores : Map< PlayerIdentity, Int >
     get() = _scores
 
-  override val trickWins : Map< PlayerIdentity, Int >
-    get() = _trickWins
+  override val turnWins : Map< PlayerIdentity, Int >
+    get() = _turnWins
 
-  override val decisionsForThisTrick : List< Decision >
-    get() = _decisionsForThisTrick
+  override val decisionsForThisTurn : List< Decision >
+    get() = _decisionsForThisTurn
 
   override val firstCard : Card?
-    get() = if( _decisionsForThisTrick.isEmpty() ) null else _decisionsForThisTrick.first().card
+    get() = if( _decisionsForThisTurn.isEmpty() ) null else _decisionsForThisTurn.first().card
 
   override val phase : Phase
     get() = _phase
@@ -178,12 +178,12 @@ class FullGame(
     appendable
         .indent( i ).append( FullGame::class.simpleName ).append( '{' ).eol()
         .indentMore( i ).append( "Trump card: " ).append( trumpAsString ).eol()
-        .indentMore( i ).append( "Turn: " ).append( trickIndex.toString() ).eol()
+        .indentMore( i ).append( "Turn: " ).append( turnIndex.toString() ).eol()
 
     if( phase != Phase.NEW) {
       appendMap( "Bets", bids )
     }
-    appendMap( "Wins", trickWins)
+    appendMap( "Wins", turnWins)
     appendMap( "Scores", scores )
 
     for( playerActor in _players ) {

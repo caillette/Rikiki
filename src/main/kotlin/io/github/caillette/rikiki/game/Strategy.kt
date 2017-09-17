@@ -10,7 +10,7 @@ interface Strategy {
   /**
    * @param chosable guaranteed to be a subset of `hand`.
    */
-  fun decideForTrick( hand : List< Card >, chosable : Set< Card > ) : Card
+  fun decideForTurn( hand : List< Card >, chosable : Set< Card > ) : Card
 
   companion object {
     val defaultFactory = FirstAvailable.factory

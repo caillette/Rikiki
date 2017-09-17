@@ -33,7 +33,7 @@ class PlayerActor(
   }
 
   /**
-   * Must be called before first call to [decisionForCurrentTrick].
+   * Must be called before first call to [decisionForCurrentTurn].
    */
   fun bet() : Int {
     val bet = _strategy.bid( _hand )
@@ -41,9 +41,9 @@ class PlayerActor(
     return bet
   }
 
-  fun decisionForCurrentTrick() : Card {
+  fun decisionForCurrentTurn() : Card {
     val chosable = chosable( _hand, game.firstCard )
-    val chosen = _strategy.decideForTrick(_hand, chosable )
+    val chosen = _strategy.decideForTurn(_hand, chosable )
     check( chosable.contains( chosen ) )
     _hand.remove( chosen )
     logger.info( "Deciding $chosen." )
