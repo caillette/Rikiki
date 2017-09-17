@@ -61,3 +61,7 @@ abstract class PublicGame(
   }
 
 }
+
+fun Set< PlayerIdentity >.strategyAppearance() : Map< Strategy.Factory, Int > {
+  return this.groupingBy { it.strategyFactory }.eachCountTo( HashMap() ).toMap()
+}
