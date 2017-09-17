@@ -37,7 +37,7 @@ class PlayerActor(
    */
   fun bet() : Int {
     val bet = _strategy.bid( _hand )
-    logger.info( "Betting $bet." )
+    logger.debug( "Betting $bet." )
     return bet
   }
 
@@ -46,7 +46,7 @@ class PlayerActor(
     val chosen = _strategy.decideForTurn(_hand, chosable )
     check( chosable.contains( chosen ) )
     _hand.remove( chosen )
-    logger.info( "Deciding $chosen." )
+    logger.debug( "Deciding $chosen." )
     return chosen
   }
 

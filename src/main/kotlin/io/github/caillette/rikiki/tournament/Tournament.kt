@@ -13,6 +13,7 @@ import io.github.caillette.rikiki.game.players
 import io.github.caillette.rikiki.game.strategyAppearance
 import io.github.caillette.rikiki.strategy.ProbabilisticLight
 import io.github.caillette.rikiki.toolkit.eol
+import mu.KotlinLogging
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
@@ -171,7 +172,7 @@ fun appendBrief( report : Appendable, brief : Tournament.Brief ) {
 
 
 fun runTournaments( runCount : Int, printGameReport : Boolean ) {
-  val parallelism = if( printGameReport ) 1 else Runtime.getRuntime().availableProcessors()
+  val parallelism = if( printGameReport ) 1 else Runtime.getRuntime().availableProcessors() * 2
   val executorService : ExecutorService = Executors.newFixedThreadPool( parallelism )
 
   var consolidatedBrief = Tournament.Brief()
@@ -188,6 +189,7 @@ fun runTournaments( runCount : Int, printGameReport : Boolean ) {
     } ) )
   } )
   futures.forEach { consolidatedBrief += it.get() }
+  executorService.shutdown()
 
   val report = StringBuilder()
   appendBrief( report, consolidatedBrief )
@@ -195,6 +197,13 @@ fun runTournaments( runCount : Int, printGameReport : Boolean ) {
 
 }
 
+private val logger = KotlinLogging.logger {}
+
+
 fun main( arguments : Array< String > ) {
-  runTournaments( 1000, false )
+  val runCount = 10_000
+  logger.info(
+      "Now running " + runCount + " " + Tournament::class.simpleName + "s with defaults ..." )
+  runTournaments( runCount, false )
+  logger.info( "Run complete." )
 }

@@ -115,7 +115,7 @@ class FullGame(
       _decisionsForThisTurn = _decisionsForThisTurn.append( decision )
     }
     val winningDecision = best( decisionsForThisTurn, trump )
-    logger.info( "Winning decision: $winningDecision " )
+    logger.debug( "Winning decision: $winningDecision " )
 
     _firstToPlay = _players.find( winningDecision.playerIdentity )
     _turnWins = _turnWins.addTo( winningDecision.playerIdentity, 1 )
