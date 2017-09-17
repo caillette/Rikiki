@@ -14,6 +14,9 @@ import io.github.caillette.rikiki.game.strategyAppearance
 import io.github.caillette.rikiki.strategy.ProbabilisticLight
 import io.github.caillette.rikiki.toolkit.eol
 import java.util.*
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.collections.HashMap
 
 class Tournament(
@@ -35,7 +38,7 @@ class Tournament(
   private val playerNameMaximumLength = players.map { it -> it.name.length }.max() !!
   private val highestTurnCount = packets.flatMap { it -> it.cards }.count() / players.size
 
-  fun turnCountSequence() : Sequence< Int > {
+  private fun turnCountSequence() : Sequence< Int > {
     val baseRange = 2 until highestTurnCount
     val baseSequence : Sequence< Int > = ( 2 until highestTurnCount ).asSequence()
     return baseSequence + baseRange.reversed()
@@ -45,7 +48,7 @@ class Tournament(
    * @return a [Map] containing the final score for each [Strategy], averaged for those which
    *     appear more than once.
    */
-  fun run( printDetail : Boolean ) : Map< Strategy.Factory, Int > {
+  fun run( printDetail : Boolean ) : Brief {
     val allScores : MutableMap< Strategy.Factory, Int > = HashMap()
     players.forEach( { allScores[ it.strategyFactory ] = 0 } )
 
@@ -78,7 +81,10 @@ class Tournament(
       if( printDetail ) println( report.toString() )
     }
 
-    return allScores.mapValues( { it.value / strategyAppearance[it.key] !! } )
+    return Brief(
+        allScores.mapValues( { it.value / strategyAppearance[it.key] !! } ),
+        turnCountSequence().count()
+    )
   }
 
   private fun appendHeader( report : Appendable, fullGame : FullGame ) {
@@ -132,20 +138,27 @@ class Tournament(
 
   }
 
+  data class Brief( val strategyScores : Map< Strategy.Factory, Int >, val gameCount : Int ) {
+
+    constructor() : this( mapOf(), 0 )
+
+    operator fun plus( other : Brief ) : Brief {
+      val newScores = HashMap< Strategy.Factory, Int >( strategyScores )
+      other.strategyScores.forEach(
+          { newScores[ it.key ] = newScores.getOrDefault( it.key, 0 ) + it.value } )
+      return Brief( newScores, gameCount + other.gameCount )
+    }
+  }
 
 }
 
-fun appendStrategyScores(
-    report : Appendable,
-    scores : Map< Strategy.Factory, Int >,
-    gameCount : Int
-) {
+fun appendBrief( report : Appendable, brief : Tournament.Brief ) {
   report
       .eol()
-      .append( "Strategy scores (over $gameCount games):" )
+      .append( "Strategy scores (over ${brief.gameCount} games):" )
       .eol()
 
-  scores.entries.joinTo(
+  brief.strategyScores.entries.joinTo(
       report,
       separator = "\n",
       transform = { e ->
@@ -156,18 +169,28 @@ fun appendStrategyScores(
   report.eol()
 }
 
-fun runTournaments(runCount : Int, printGameReport : Boolean) {
-  val strategyScores : MutableMap< Strategy.Factory, Int > = HashMap()
-  var gameCount = 0
-  for( tournamenIndex in 1..runCount ) {
-    val tournament = Tournament()
-    val newScores = tournament.run( printGameReport )
-    gameCount += tournament.turnCountSequence().count()
-    newScores.forEach(
-        { strategyScores[ it.key ] = strategyScores.getOrDefault( it.key, 0 ) + it.value } )
-  }
+
+fun runTournaments( runCount : Int, printGameReport : Boolean ) {
+  val parallelism = if( printGameReport ) 1 else Runtime.getRuntime().availableProcessors()
+  val executorService : ExecutorService = Executors.newFixedThreadPool( parallelism )
+
+  var consolidatedBrief = Tournament.Brief()
+
+  val futures = Array( parallelism, {
+    executorService.submit( Callable< Tournament.Brief >( {
+      var brief = Tournament.Brief()
+      val localRunCount = runCount / parallelism +
+          ( if( it == 1 ) runCount % parallelism else 0 )
+      for( tournamenIndex in 1..localRunCount ) {
+        brief += Tournament().run( printGameReport )
+      }
+      brief
+    } ) )
+  } )
+  futures.forEach { consolidatedBrief += it.get() }
+
   val report = StringBuilder()
-  appendStrategyScores( report, strategyScores, gameCount )
+  appendBrief( report, consolidatedBrief )
   println( report.toString() )
 
 }
