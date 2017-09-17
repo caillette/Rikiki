@@ -171,8 +171,13 @@ fun appendBrief( report : Appendable, brief : Tournament.Brief ) {
 }
 
 
-fun runTournaments( runCount : Int, printGameReport : Boolean ) {
-  val parallelism = if( printGameReport ) 1 else Runtime.getRuntime().availableProcessors() * 2
+fun runTournaments(
+    runCount : Int,
+    printGameReport : Boolean,
+    availableProcessorUsage : Float = 1.0F
+) {
+  val parallelism : Int = if( printGameReport ) 1
+      else ( Runtime.getRuntime().availableProcessors() * availableProcessorUsage ).toInt()
   val executorService : ExecutorService = Executors.newFixedThreadPool( parallelism )
 
   var consolidatedBrief = Tournament.Brief()
@@ -201,9 +206,13 @@ private val logger = KotlinLogging.logger {}
 
 
 fun main( arguments : Array< String > ) {
-  val runCount = 10_000
+  val runCount = 100_000
   logger.info(
       "Now running " + runCount + " " + Tournament::class.simpleName + "s with defaults ..." )
-  runTournaments( runCount, false )
+  runTournaments(
+      runCount,
+      printGameReport = false,
+      availableProcessorUsage = 0.95F // Let system breathe. At 1F, VisualVM chokes.
+  )
   logger.info( "Run complete." )
 }

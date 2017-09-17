@@ -58,8 +58,10 @@ class Card constructor(
     val figure : Figure,
     val suite : Suite
 ) {
+  private val tostring = javaClass.simpleName + "{" + figure.asciiSymbol + suite.asciiSymbol + "}"
+
   override fun toString() : String {
-    return javaClass.simpleName + "{" + figure.asciiSymbol + suite.asciiSymbol + "}"
+    return tostring
   }
 }
 
