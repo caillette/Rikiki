@@ -124,7 +124,7 @@ class FullGame(
     if( turnIndex >= turnCount) {
       _phase = Phase.COMPLETE
       for( player in playerIdentities ) {
-        _scores = _scores.addTo( player, score( bids[ player ]!!, turnWins[ player ] !! ) )
+        _scores = _scores.addTo( player, score( bids[ player ] !!, turnWins[ player ] !! ) )
       }
     }
 

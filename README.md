@@ -12,4 +12,4 @@ To run the game, clone this repository and open it as a project from your favori
 - Run `Tournament` to run lots of tournaments and see each strategy's score. Takes a few minutes.
 - Edit default values int `Tournament` to change number of players or their strategies.
 
-The most sophisticated strategy is `AimZero` which bids a result of zero and plays non-winning cards whenever possible (this strategy also works well in real world and it is not antiplay). The performance of `AimZero` doesn't degrade too much against players with non-dumb strategies, its average score is about 80 points for a 30-game tournament with 6 players. A human beginner quickly reaches more than 150 points.
+The most sophisticated strategy is `AimZero` which bids a result of zero and plays non-winning cards whenever possible (this strategy also works well in real world and it is not antiplay). The performance of `AimZero` doesn't degrade too much against players with non-dumb strategies, its average score is about 80 points for a 30-game tournament with 6 players. A human beginner quickly reaches 150 points.

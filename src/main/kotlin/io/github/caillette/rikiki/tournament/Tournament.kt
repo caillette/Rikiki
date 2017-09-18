@@ -34,6 +34,7 @@ class Tournament(
             ProbabilisticLight.factory,
             AimZero.factory,
             AimZero.factory
+            // Other players use dumb default.
         ),
         "Alice", "Bob", "Charlie", "Dylan", "Eddie", "Fitz"
   ) )

@@ -14,7 +14,7 @@ class AimZero(
     val firstCard = game.firstCard
     val trump = game.trump
     val cardsPlayedInThisTurn = game.cardsPlayedInThisTurn()
-    var chosableCardsWeakestFirst = chosable.sortedBy { it.figure.strength }
+    val chosableCardsWeakestFirst = chosable.sortedBy { it.figure.strength }
 
     // Play strongest trump-suited card weaker than strongest trump-suited card played.
     val strongestTrumpSuitedCardPlayed = cardsPlayedInThisTurn
@@ -50,9 +50,7 @@ class AimZero(
     }
 
     // Play weakest non-trump card when playing first.
-    val weakestNonTrump = chosableCardsWeakestFirst
-        .filter { it.suite != trump }
-        .firstOrNull()
+    val weakestNonTrump = chosableCardsWeakestFirst.firstOrNull { it.suite != trump }
     if( weakestNonTrump != null ) return weakestNonTrump
 
     // Play weakest card in last resort.
