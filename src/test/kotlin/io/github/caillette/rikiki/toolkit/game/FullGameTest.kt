@@ -1,8 +1,5 @@
 package io.github.caillette.rikiki.toolkit.game
 import io.github.caillette.rikiki.card.Card
-import io.github.caillette.rikiki.card.Figure
-import io.github.caillette.rikiki.card.Packet
-import io.github.caillette.rikiki.card.Suite
 import io.github.caillette.rikiki.game.FullGame
 import io.github.caillette.rikiki.game.PlayerIdentity
 import io.github.caillette.rikiki.game.score
@@ -68,12 +65,12 @@ class FullGameTest {
     fullGame.runTheBids()
     assertEquals( alice._hand.size, 2 )
     assertEquals( bob._hand.size, 2 )
-    assertEquals( fullGame.decisionsForThisTurn.size, 0 )
+    assertEquals( fullGame.decisionsInThisTurn.size, 0 )
 
     fullGame.runTheTurn()
     assertEquals( alice._hand.size, 1 )
     assertEquals( bob._hand.size, 1 )
-    assertEquals( fullGame.decisionsForThisTurn.size, 2 )
+    assertEquals( fullGame.decisionsInThisTurn.size, 2 )
 
     assertEquals( 0, fullGame.scores[ Fixture.alice ] )
     assertEquals( 0, fullGame.scores[ Fixture.bob ] )
@@ -81,7 +78,7 @@ class FullGameTest {
     fullGame.runTheTurn()
     assertEquals( alice._hand.size, 0 )
     assertEquals( bob._hand.size, 0 )
-    assertEquals( fullGame.decisionsForThisTurn.size, 2 )
+    assertEquals( fullGame.decisionsInThisTurn.size, 2 )
 
     fullGame.dumpToConsole()
 

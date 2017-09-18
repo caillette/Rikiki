@@ -56,7 +56,7 @@ class FullGame(
 
   /**
    * We recreate a fresh instance each time we add an element. But this saves defensive copies
-   * when [PlayerActor] calls [PublicGame.decisionsForThisTurn].
+   * when [PlayerActor] calls [PublicGame.decisionsInThisTurn].
    * TODO: use a backward-chained list.
    */
   private var _decisionsForThisTurn : ImmutableList< Decision > = ImmutableList.of()
@@ -114,7 +114,7 @@ class FullGame(
       val decision = Decision( playerActor.playerIdentity, cardPlayed )
       _decisionsForThisTurn = _decisionsForThisTurn.append( decision )
     }
-    val winningDecision = best( decisionsForThisTurn, trump )
+    val winningDecision = best(decisionsInThisTurn, trump )
     logger.debug( "Winning decision: $winningDecision " )
 
     _firstToPlay = _players.find( winningDecision.playerIdentity )
@@ -153,7 +153,7 @@ class FullGame(
   override val turnWins : Map< PlayerIdentity, Int >
     get() = _turnWins
 
-  override val decisionsForThisTurn : List< Decision >
+  override val decisionsInThisTurn : List< Decision >
     get() = _decisionsForThisTurn
 
   override val firstCard : Card?

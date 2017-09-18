@@ -24,7 +24,11 @@ abstract class PublicGame(
   /**
    * @return an immutable [List].
    */
-  abstract val decisionsForThisTurn : List< Decision >
+  abstract val decisionsInThisTurn : List< Decision >
+
+  fun cardsPlayedInThisTurn() : List< Card > {
+    return decisionsInThisTurn.map { it.card }
+  }
 
   /**
    * Zero-based index of current turn.

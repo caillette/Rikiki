@@ -11,6 +11,7 @@ import io.github.caillette.rikiki.game.ansiString
 import io.github.caillette.rikiki.game.appendPlayerValues
 import io.github.caillette.rikiki.game.players
 import io.github.caillette.rikiki.game.strategyAppearance
+import io.github.caillette.rikiki.strategy.AimZero
 import io.github.caillette.rikiki.strategy.ProbabilisticLight
 import io.github.caillette.rikiki.toolkit.eol
 import mu.KotlinLogging
@@ -28,7 +29,7 @@ class Tournament(
   constructor() : this(
       arrayOf( Packet(), Packet() ),
       players(
-        listOf( ProbabilisticLight.factory ),
+        listOf( ProbabilisticLight.factory, AimZero.factory ),
         "Alice", "Bob", "Charlie", "Dylan", "Eddie", "Fitz"
   ) )
 
@@ -49,14 +50,14 @@ class Tournament(
    * @return a [Map] containing the final score for each [Strategy], averaged for those which
    *     appear more than once.
    */
-  fun run( printDetail : Boolean ) : Brief {
+  fun run( random: Random, printDetail : Boolean ) : Brief {
     val allScores : MutableMap< Strategy.Factory, Int > = HashMap()
     players.forEach( { allScores[ it.strategyFactory ] = 0 } )
 
     val strategyAppearance = players.strategyAppearance()
 
     for( gameIndex in turnCountSequence() ) {
-      val cards = shuffle( Random(), *packets )
+      val cards = shuffle( random, *packets )
       val fullGame = FullGame(
           players,
           cards,
@@ -110,7 +111,7 @@ class Tournament(
       fullGame : FullGame,
       winningDecision : Decision
   ) {
-    for( ( playerIdentity, card ) in fullGame.decisionsForThisTurn ) {
+    for( ( playerIdentity, card ) in fullGame.decisionsInThisTurn) {
       report.append( playerIdentity.name.padStart(playerNameMaximumLength) )
       report.append( ": " ).append( ansiString( card ) )
       if( playerIdentity == winningDecision.playerIdentity ) {
@@ -176,14 +177,11 @@ fun appendBrief( report : Appendable, brief : Tournament.Brief ) {
 
 fun runTournaments(
     runCount : Int,
+    trueRandom : Boolean,
     printGameReport : Boolean,
-    availableProcessorUsage : Float = 1.0F
+    processorUsage : Float = 1.0F
 ) {
-  val parallelism : Int = if( printGameReport ) {
-    1
-  } else {
-    ( Runtime.getRuntime().availableProcessors() * availableProcessorUsage ).toInt()
-  }
+  val parallelism : Int = if( printGameReport ) 1 else numberOfProcessors( processorUsage )
   val executorService : ExecutorService = Executors.newFixedThreadPool( parallelism )
 
   var consolidatedBrief = Tournament.Brief()
@@ -194,7 +192,8 @@ fun runTournaments(
       val localRunCount = runCount / parallelism +
           ( if( it == 1 ) runCount % parallelism else 0 )
       for( tournamenIndex in 1..localRunCount ) {
-        brief += Tournament().run( printGameReport )
+        val random = if( trueRandom ) Random() else Random( 0 )
+        brief += Tournament().run(random, printGameReport )
       }
       brief
     } ) )
@@ -208,6 +207,10 @@ fun runTournaments(
 
 }
 
+private fun numberOfProcessors( availableProcessorUsage : Float ) : Int {
+  return (Runtime.getRuntime().availableProcessors() * availableProcessorUsage).toInt()
+}
+
 private val logger = KotlinLogging.logger {}
 
 
@@ -217,8 +220,9 @@ fun main( arguments : Array< String > ) {
       "Now running " + runCount + " " + Tournament::class.simpleName + "s with defaults ..." )
   runTournaments(
       runCount,
+      true,
       printGameReport = false,
-      availableProcessorUsage = 0.95F // Let system breathe. At 1F, VisualVM chokes.
+      processorUsage = 0.95F // Let system breathe. At 1F, VisualVM chokes.
   )
   logger.info( "Run complete." )
 }

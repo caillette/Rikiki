@@ -47,7 +47,7 @@ class ProbabilisticLight(
           return trumpCompliantCards.first()
         }
         if( turnCompletion() > 0.5 ) {
-          val strongerCards = strongerCards( chosable, cardsPlayedInThisTurn(), game.trump )
+          val strongerCards = strongerCards( chosable, game.cardsPlayedInThisTurn(), game.trump )
           if( strongerCards.isNotEmpty() ) return strongerCards.first()
         }
       }

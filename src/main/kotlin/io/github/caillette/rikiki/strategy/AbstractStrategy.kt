@@ -15,13 +15,11 @@ abstract class AbstractStrategy(
 
   protected fun myBids() : Int = game.bids[ playerIdentity ]!!
 
-  protected fun cardsPlayedInThisTurn() = game.decisionsForThisTurn.map { it.card }
-
   /**
    * From 0 (at the start of the turn) to 1 at the end.
    */
   protected fun turnCompletion() : Float =
-      game.decisionsForThisTurn.size.toFloat() / game.playerIdentities.size.toFloat()
+      game.decisionsInThisTurn.size.toFloat() / game.playerIdentities.size.toFloat()
 
   /**
    * @param cards must be non-empty.
@@ -57,3 +55,6 @@ abstract class AbstractStrategy(
   }
 
 }
+
+fun Card.weakerInSameSuite() : ( Card ) -> Boolean =
+    { c -> c.suite == this.suite && c.figure.strength < this.figure.strength }

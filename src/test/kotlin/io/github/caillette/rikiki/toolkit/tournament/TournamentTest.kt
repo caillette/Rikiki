@@ -7,14 +7,15 @@ class TournamentTest {
 
   @Test
   fun singleTournament() {
-    runTournaments( 1, true )
+    runTournaments( 1, false, true )
   }
 
   @Test
   fun manyTournaments() {
     runTournaments(
         Runtime.getRuntime().availableProcessors() * 2,
-        false // Triggers parallel run.
+        trueRandom = true,
+        printGameReport = false // Triggers parallel run.
     )
   }
 
