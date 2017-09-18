@@ -6,6 +6,7 @@ import io.github.caillette.rikiki.card.Suite
 import io.github.caillette.rikiki.game.FullGame
 import io.github.caillette.rikiki.game.PlayerIdentity
 import io.github.caillette.rikiki.game.score
+import io.github.caillette.rikiki.toolkit.card.CardFixture
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
@@ -19,13 +20,13 @@ class FullGameTest {
   @Test
   fun duplicatePlayerName() {
     assertThrows( Exception::class.java, {
-      FullGame( setOf( PlayerIdentity( "me" ), PlayerIdentity( "me" ) ), Fixture.cards, 2 )
+      FullGame( setOf( PlayerIdentity( "me" ), PlayerIdentity( "me" ) ), CardFixture.cards, 2 )
     } )
   }
 
   @Test
   fun createPlayerActors() {
-    val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
+    val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), CardFixture.cards, 2 )
     assertSame( fullGame._players.size, 2 )
     val alice = fullGame._players[ 0 ]
     val bob = fullGame._players[ 1 ]
@@ -36,17 +37,17 @@ class FullGameTest {
 
     logger.info( "Logging works" )
 
-    assertMatches( Fixture.ACE_OF_SPADES, alice._hand[ 0 ] )
-    assertMatches( Fixture.KING_OF_CLUBS, bob._hand[ 0 ] )
-    assertMatches( Fixture.QUEEN_OF_HEARTS, alice._hand[ 1 ] )
-    assertMatches( Fixture.TEN_OF_DIAMONDS, bob._hand[ 1 ] )
-    assertSame( Fixture.TWO_OF_CLUBS.suite, fullGame.trump )
+    assertMatches( CardFixture.ACE_OF_SPADES, alice._hand[ 0 ] )
+    assertMatches( CardFixture.KING_OF_CLUBS, bob._hand[ 0 ] )
+    assertMatches( CardFixture.QUEEN_OF_HEARTS, alice._hand[ 1 ] )
+    assertMatches( CardFixture.TEN_OF_DIAMONDS, bob._hand[ 1 ] )
+    assertSame( CardFixture.TWO_OF_CLUBS.suite, fullGame.trump )
   }
 
 
   @Test
   fun askPlayersToBet() {
-    val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
+    val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), CardFixture.cards, 2 )
     assertThrows( IllegalStateException::class.javaObjectType, { fullGame.bids[ Fixture.alice ] } )
     fullGame.runTheBids()
     assertEquals( fullGame.bids[ Fixture.alice ], 0 )
@@ -56,7 +57,7 @@ class FullGameTest {
 
   @Test
   fun completeGame() {
-    val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), Fixture.cards, 2 )
+    val fullGame = FullGame( setOf( Fixture.alice, Fixture.bob ), CardFixture.cards, 2 )
     logger.info( "Trump is ${fullGame.trump}." )
     val alice = fullGame._players[ 0 ]
     val bob = fullGame._players[ 1 ]
@@ -103,33 +104,13 @@ class FullGameTest {
 
 }
 
-fun assertMatches( cardPattern : Fixture.CardPattern, card : Card ) {
+fun assertMatches( cardPattern : CardFixture.CardPattern, card : Card ) {
   assertTrue( cardPattern.forCard.invoke( card ), "$card doesn't match $cardPattern" )
 }
 
 object Fixture {
 
-  data class CardPattern( private val figure : Figure, val suite : Suite ) {
-    val forCard : ( Card ) -> Boolean = { card -> card.figure == figure && card.suite == suite }
-    val raw : ( Figure, Suite ) -> Boolean = { f, s -> f == figure && s == suite }
-  }
-
-  val ACE_OF_SPADES = CardPattern( Figure.ACE, Suite.SPADE )
-  val KING_OF_CLUBS = CardPattern( Figure.KING, Suite.CLUB )
-  val QUEEN_OF_HEARTS = CardPattern( Figure.QUEEN, Suite.HEART )
-  val TEN_OF_DIAMONDS = CardPattern( Figure.TEN, Suite.DIAMOND )
-  val TWO_OF_CLUBS = CardPattern( Figure.TWO, Suite.CLUB )
-
   val alice = PlayerIdentity( "Alice" )
   val bob = PlayerIdentity( "Bob" )
-
-  val cards = Packet(
-      ACE_OF_SPADES.raw,
-      KING_OF_CLUBS.raw,
-      QUEEN_OF_HEARTS.raw,
-      TEN_OF_DIAMONDS.raw,
-      TWO_OF_CLUBS.raw
-  ).cards
-
 
 }

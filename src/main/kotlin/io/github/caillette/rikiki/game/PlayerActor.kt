@@ -38,7 +38,7 @@ class PlayerActor(
   fun bid() : Int {
     val bid = _strategy.bid( _hand )
     logger.debug( "Betting $bid." )
-    check( bid > 0 )
+    check( bid >= 0 )
     return bid
   }
 

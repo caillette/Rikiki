@@ -22,17 +22,38 @@ enum class Figure( val asciiSymbol : Char ) {
   QUEEN( 'Q' ),
   KING( 'K' ) ;
 
-  public fun strength() : Int {
+  /**
+   * Need to be lazy because we can't calculate [ACE]'s strength before instantiating [KING].
+   * Another approach would be to pass the value calculated by [fixedOrdinal] to the constructor.
+   *
+   * @see forceLazyEvaluationOnceAllItemsAreInstantiated
+   */
+  val strength : Float by lazy( LazyThreadSafetyMode.NONE ) {
+    fixedOrdinal().toFloat() / values().size.toFloat()
+  }
+
+  private fun fixedOrdinal() : Int {
     return if( this == ACE ) KING.ordinal + 1 else ordinal
   }
 
   object comparatorByStrength : Comparator< Figure > {
     override fun compare( o1 : Figure, o2 : Figure) : Int {
-      return o2.strength() - o1.strength()  // Reversed, greatest comes first.
+      return ( o1.strength * 100 - o2.strength * 100 ).toInt()
+    }
+  }
+
+  /**
+   * Force evaluation from one thread. Doesn't work, why?
+   */
+  companion object forceLazyEvaluationOnceAllItemsAreInstantiated {
+    init {
+//      Figure.values().forEach { it.strength }
     }
   }
 
 }
+
+
 
 enum class Color {
   RED,

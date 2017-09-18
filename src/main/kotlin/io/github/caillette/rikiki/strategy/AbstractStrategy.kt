@@ -27,15 +27,15 @@ abstract class AbstractStrategy(
    * @param cards must be non-empty.
    */
   protected fun highestStrength( cards : List< Card > ) =
-      cards.map { it.figure.strength() }.max() !!
+      cards.map { ( it.figure.strength ) }.max() !!
 
   protected fun strongerCards(
       from : Set< Card >,
       suiteOfInterest : Suite?,
-      strengthThreshold : Int
+      strengthThreshold : Float
   ) = from.filter {
     ( suiteOfInterest == null || it.suite == suiteOfInterest ) &&
-        it.figure.strength() > strengthThreshold
+        it.figure.strength > strengthThreshold
   }.toSet()
 
   protected fun strongerCards(

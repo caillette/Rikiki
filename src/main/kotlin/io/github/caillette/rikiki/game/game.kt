@@ -66,7 +66,7 @@ fun best( decisions : List< Decision >, trump : Suite? ) : Decision {
     val trumpOnly = select( decisions, trump )
     if( trumpOnly.isEmpty() ) sameSuiteAsFirst() else trumpOnly
   }
-  selectable.sortWith( Decision.comparatorByFigureStrength )
+  selectable.sortWith( Decision.comparatorByFigureStrength.reversed() )
   return selectable.first()
 }
 
