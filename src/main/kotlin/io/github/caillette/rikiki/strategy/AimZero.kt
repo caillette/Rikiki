@@ -16,14 +16,14 @@ class AimZero(
     val cardsPlayedInThisTurn = game.cardsPlayedInThisTurn()
     var chosableCardsWeakestFirst = chosable.sortedBy { it.figure.strength }
 
-    // Play strongest trump-suited card weaker than strongest trump-suited card if any was played.
-    val trumpSuitedCardPlayed = cardsPlayedInThisTurn
+    // Play strongest trump-suited card weaker than strongest trump-suited card played.
+    val strongestTrumpSuitedCardPlayed = cardsPlayedInThisTurn
         .filter { it.suite == trump }
         .sortedByDescending{ it.figure.strength }
         .firstOrNull()
-    if( trumpSuitedCardPlayed != null ) {
+    if( strongestTrumpSuitedCardPlayed != null ) {
       val weakerCard = chosable
-          .filter( trumpSuitedCardPlayed.weakerInSameSuite() )
+          .filter( strongestTrumpSuitedCardPlayed.weakerInSameSuite() )
           .sortedByDescending { it.figure.strength }
           .firstOrNull()
       if( weakerCard != null ) return weakerCard
@@ -31,7 +31,7 @@ class AimZero(
 
     if( firstCard != null ) {
 
-      // Play strongest card out of first card's suite which is not trump-suited.
+      // Play strongest non trump-suited card out of first card's suite.
       val strongestCardOutOfFirstCardSuite = chosable
           .filter { it.suite != firstCard.suite && it.suite != trump }
           .sortedByDescending { it.figure.strength }

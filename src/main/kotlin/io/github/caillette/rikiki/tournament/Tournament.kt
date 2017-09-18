@@ -29,7 +29,12 @@ class Tournament(
   constructor() : this(
       arrayOf( Packet(), Packet() ),
       players(
-        listOf( ProbabilisticLight.factory, AimZero.factory ),
+        listOf(
+            ProbabilisticLight.factory,
+            ProbabilisticLight.factory,
+            AimZero.factory,
+            AimZero.factory
+        ),
         "Alice", "Bob", "Charlie", "Dylan", "Eddie", "Fitz"
   ) )
 
@@ -41,7 +46,7 @@ class Tournament(
   private val highestTurnCount = packets.flatMap { it -> it.cards }.count() / players.size
 
   private fun turnCountSequence() : Sequence< Int > {
-    val baseRange = 2 until highestTurnCount
+    val baseRange = 1 until highestTurnCount
     val baseSequence : Sequence< Int > = ( 2 until highestTurnCount ).asSequence()
     return baseSequence + baseRange.reversed()
   }
@@ -154,7 +159,7 @@ class Tournament(
 
 }
 
-fun appendBrief( report : Appendable, brief : Tournament.Brief ) {
+fun appendBrief( report : Appendable, brief : Tournament.Brief, tournamentCount : Int ) {
   report
       .eol()
       .append( "Strategy scores (over ${brief.gameCount} games):" )
@@ -164,9 +169,10 @@ fun appendBrief( report : Appendable, brief : Tournament.Brief ) {
       report,
       separator = "\n",
       transform = {
-        val scoreAverage = it.value / brief.gameCount
+        val scoreAverage = it.value / tournamentCount
         it.key.name() + ": " + it.value +
-            " (" + scoreAverage + " point" + ( if ( scoreAverage > 1 ) "s" else "" ) +
+            " (" + scoreAverage + " point" +
+            ( if ( scoreAverage in -1..1 ) "" else "s" ) +
             "/tournament)"
       }
   )
@@ -193,7 +199,7 @@ fun runTournaments(
           ( if( it == 1 ) runCount % parallelism else 0 )
       for( tournamenIndex in 1..localRunCount ) {
         val random = if( trueRandom ) Random() else Random( 0 )
-        brief += Tournament().run(random, printGameReport )
+        brief += Tournament().run( random, printGameReport )
       }
       brief
     } ) )
@@ -202,7 +208,7 @@ fun runTournaments(
   executorService.shutdown()
 
   val report = StringBuilder()
-  appendBrief( report, consolidatedBrief )
+  appendBrief( report, consolidatedBrief, runCount )
   println( report.toString() )
 
 }
