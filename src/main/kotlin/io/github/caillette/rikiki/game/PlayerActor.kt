@@ -35,10 +35,11 @@ class PlayerActor(
   /**
    * Must be called before first call to [decisionForCurrentTurn].
    */
-  fun bet() : Int {
-    val bet = _strategy.bid( _hand )
-    logger.debug( "Betting $bet." )
-    return bet
+  fun bid() : Int {
+    val bid = _strategy.bid( _hand )
+    logger.debug( "Betting $bid." )
+    check( bid > 0 )
+    return bid
   }
 
   fun decisionForCurrentTurn() : Card {

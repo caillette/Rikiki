@@ -28,7 +28,7 @@ abstract class PublicGame(
 
   /**
    * Zero-based index of current turn.
-   * A turn is a sequence of calls to [PlayerActor.bet] (one call per [PlayerActor])
+   * A turn is a sequence of calls to [PlayerActor.bid] (one call per [PlayerActor])
    * then a sequence of calls to [PlayerActor.decisionForCurrentTurn] (one call per
    * [PlayerActor] again).
    * The value of [turnIndex] is capped by [turnCount].
@@ -41,7 +41,7 @@ abstract class PublicGame(
 
   /**
    * @return an immutable [Map] reflecting last bets.
-   * @throws IllegalStateException if [PlayerActor.bet] was not called beforehand for everybody.
+   * @throws IllegalStateException if [PlayerActor.bid] was not called beforehand for everybody.
    */
   abstract val bids : Map< PlayerIdentity, Int >
 

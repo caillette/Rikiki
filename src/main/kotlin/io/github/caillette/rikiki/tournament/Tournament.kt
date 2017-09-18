@@ -162,8 +162,11 @@ fun appendBrief( report : Appendable, brief : Tournament.Brief ) {
   brief.strategyScores.entries.joinTo(
       report,
       separator = "\n",
-      transform = { e ->
-        e.key.name() + ": " + e.value
+      transform = {
+        val scoreAverage = it.value / brief.gameCount
+        it.key.name() + ": " + it.value +
+            " (" + scoreAverage + " point" + ( if ( scoreAverage > 1 ) "s" else "" ) +
+            "/tournament)"
       }
   )
 
@@ -176,8 +179,11 @@ fun runTournaments(
     printGameReport : Boolean,
     availableProcessorUsage : Float = 1.0F
 ) {
-  val parallelism : Int = if( printGameReport ) 1
-      else ( Runtime.getRuntime().availableProcessors() * availableProcessorUsage ).toInt()
+  val parallelism : Int = if( printGameReport ) {
+    1
+  } else {
+    ( Runtime.getRuntime().availableProcessors() * availableProcessorUsage ).toInt()
+  }
   val executorService : ExecutorService = Executors.newFixedThreadPool( parallelism )
 
   var consolidatedBrief = Tournament.Brief()

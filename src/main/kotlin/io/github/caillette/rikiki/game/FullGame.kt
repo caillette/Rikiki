@@ -95,7 +95,7 @@ class FullGame(
   fun runTheBids() {
     val betsBuilder : MutableMap<PlayerIdentity, Int > = mutableMapOf()
     for( playerActor in _players ) {
-      betsBuilder[ playerActor.playerIdentity ] = playerActor.bet()
+      betsBuilder[ playerActor.playerIdentity ] = playerActor.bid()
     }
     _bid = ImmutableMap.copyOf( betsBuilder )
     _phase = Phase.BIDS_DONE
@@ -173,8 +173,7 @@ class FullGame(
       appendable.eol()
     }
 
-    val trumpAsString = if( _trump == null ) "" else ansiString(
-        _trump)
+    val trumpAsString = if( _trump == null ) "" else ansiString( _trump )
     appendable
         .indent( i ).append( FullGame::class.simpleName ).append( '{' ).eol()
         .indentMore( i ).append( "Trump card: " ).append( trumpAsString ).eol()
